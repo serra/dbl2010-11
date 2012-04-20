@@ -1,0 +1,12 @@
+> lines <- statlinesraw[order(statlinesraw$wed_ID, statlinesraw$wed_ThuisPloeg, statlinesraw$wed_UitPloeg)]
+Error in `[.data.frame`(statlinesraw, order(statlinesraw$wed_ID, statlinesraw$wed_ThuisPloeg,  : 
+  undefined columns selected
+> lines <- statlinesraw[order(statlinesraw$wed_ID, statlinesraw$wed_ThuisPloeg, statlinesraw$wed_UitPloeg),]
+> summary lines
+Error: unexpected symbol in "summary lines"
+> summary (lines)
+
+order by gm, team
+for each new geam statline 
+   and add team row to new dataframe named teamstats for both teams
+then merge the dataframes
