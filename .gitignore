@@ -1,6 +1,2 @@
-# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
-bin
-obj
-
-# mstest test results
-TestResults
+# No idea yet what to put in .gitignore yet for r projects ... we'll see :)
+ 
