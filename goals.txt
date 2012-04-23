@@ -1,0 +1,27 @@
+Goals
+=====
+
+Offensive and defensive ratings for teams for complete season (including play offs).
+
+Four performance indicators for all teams and their opponents, shown in side-by-side box plots:
+
+ * (effective?) field goal percentage
+ * offensive rebound percentage
+ * turnover percentage
+ * fta/fga
+
+Summary of indicators for the competition.
+ 
+Field- and floor percentages for all teams.
+
+Shot selection for all teams
+
+ * 2s / 3s as box plot for season
+
+Offensive and defensive ratings for players for complete season.
+
+Offensive usage percentages for all players.
+
+Point produced for all players.
+
+Verifiaction of estimaters (e.g. 0.4 in the possesion calculation)
