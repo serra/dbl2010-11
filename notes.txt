@@ -10,3 +10,31 @@ order by gm, team
 for each new geam statline 
    and add team row to new dataframe named teamstats for both teams
 then merge the dataframes
+
+
+
+
+
+
+
+
+
+
+IDE
+===
+
+http://www.rstudio.org/
+
+http://www.walware.de/goto/statet (eclipse)
+
+vim with R plugin
+
+
+Resources
+=========
+
+http://wiki.stdout.org/rcookbook/
+
+
+
+
