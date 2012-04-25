@@ -4,26 +4,36 @@
 #clear workspace?
 
 library(sqldf)
+
+regSeasonID <- 421
+playOffID <- 627
+
 sts <- read.csv2("./sources/heren_2010_2011.csv")
+sts <- sts[which(sts$cmp_ID==regSeasonID),]
 
 psData <- data.frame(sts$wed_ID, sts$plg_ID, sts$wed_UitPloeg, sts$wed_ThuisPloeg, 
                                 sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  sts$scu_3PA, 
                                 sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers )
-names(psData) <- sub("^sts.", "", names(psData))        # hack - remove prefixes to maintain identical column names for merge
+
+# pretify
+names(psData) <- sub("^sts.", "", names(psData))        
+names(psData) <- sub("scu_", "", names(psData))
+names(psData) <- sub("OffRebounds", "OR", names(psData))
+names(psData) <- sub("DefRebounds", "DR", names(psData))
+names(psData) <- sub("TurnOvers", "TO", names(psData))
+names(psData) <- sub("3P", "FG3", names(psData))
                  
 games <- sqldf("select wed_ID from sts group by wed_ID")
 teams <- sqldf(paste("select plg_ID, thuis_club from sts",
                      "where plg_ID = wed_ThuisPloeg",
                      "group by plg_ID, thuis_club"))
 
-# order statstsraw
-#sts <- sts[order(sts$wed_ID, statlinesraw$wed_ThuisPloeg, statlinesraw$wed_UitPloeg),]
-
 sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ", 
-                  "max(wed_TeamOffRebThuis) as scu_OffRebounds, ",
-                  "max(wed_TeamDefRebThuis) as scu_DefRebounds, ", 
-                  "max(wed_TeamTurnOverThuis) as scu_TurnOvers ",
-                  "from sts where plg_Id=wed_ThuisPloeg group by wed_Id, plg_ID, wed_UitPloeg, wed_ThuisPloeg")
+                  "max(wed_TeamOffRebThuis) as [OR], ",
+                  "max(wed_TeamDefRebThuis) as DR, ", 
+                  "max(wed_TeamTurnOverThuis) as [TO] ",
+                  "from sts where plg_Id=wed_ThuisPloeg ",
+                  "group by wed_Id, plg_ID, wed_UitPloeg, wed_ThuisPloeg")
 stsThuis <- sqldf(sqlThuis)
 
 # add zeros for missing columns
@@ -47,6 +57,7 @@ sqlGameLine = paste("select * from agg ",
                     "(agg.plg_ID = agg.wed_ThuisPloeg and opp.plg_ID = opp.wed_UitPloeg) or ",
                     "(agg.plg_ID = agg.wed_UitPloeg and opp.plg_ID = opp.wed_ThuisPloeg) ",
                     ")",
+                    "",
                     "order by wed_ID"
                     )
 
@@ -55,11 +66,6 @@ gmStats <- sqldf(sqlGameLine)
 nrCols <- dim(gmStats)[2]/2
 oppCols <- paste("opp", names(gmStats)[nrCols+1:nrCols], sep="_")
 names(gmStats)[nrCols+1:nrCols] <- oppCols
-names(gmStats) <- sub("scu_", "", names(gmStats))
-names(gmStats) <- sub("OffRebounds", "OR", names(gmStats))
-names(gmStats) <- sub("DefRebounds", "DR", names(gmStats))
-names(gmStats) <- sub("TurnOvers", "TO", names(gmStats))
-names(gmStats) <- sub("3P", "FG3", names(gmStats))
 
 gmStats <- transform(gmStats, 
                    pts = FTM + 2*FGM + 3*FG3M,
@@ -80,7 +86,7 @@ gmStats <- transform(gmStats,
 gmStats <- transform(gmStats,
                      Nrtg = Ortg - Drtg)
 
-pdf("ratings.pdf")
+pdf("output/ratings.pdf")
 
 boxplot(Ortg ~ plg_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
 boxplot(Drtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
@@ -88,11 +94,20 @@ boxplot(Nrtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Dr
 
 dev.off()
 
-pdf("streak.pdf")
+pdf("output/pace.pdf")
 
-plot(Ortg ~ wed_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
+boxplot(avgps ~ plg_ID, data=gmStats, xlab="Team", ylab="Possessions")
 
 dev.off()
+
+#pdf("output/game-by-game.pdf")
+
+plgID <- teams[10,1]
+forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+plot(forPlot$wed_ID, forPlot$Ortg, type="b", pch=17, lty=2, col="blue", xlab="Team", ylab="Ortg (Offensive Rating)")
+lines(forPlot$wed_ID, forPlot$Drtg, pch=15, lty=1, col="red", type="b")
+
+#dev.off()
 
 
 
