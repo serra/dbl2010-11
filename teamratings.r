@@ -11,8 +11,10 @@ psData <- data.frame(sts$wed_ID, sts$plg_ID, sts$wed_UitPloeg, sts$wed_ThuisPloe
                                 sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers )
 names(psData) <- sub("^sts.", "", names(psData))        # hack - remove prefixes to maintain identical column names for merge
                  
-games <- sqldf("select wed_ID from psData group by wed_ID")
-
+games <- sqldf("select wed_ID from sts group by wed_ID")
+teams <- sqldf(paste("select plg_ID, thuis_club from sts",
+                     "where plg_ID = wed_ThuisPloeg",
+                     "group by plg_ID, thuis_club"))
 
 # order statstsraw
 #sts <- sts[order(sts$wed_ID, statlinesraw$wed_ThuisPloeg, statlinesraw$wed_UitPloeg),]
@@ -49,18 +51,48 @@ sqlGameLine = paste("select * from agg ",
                     )
 
 # pretify columns
-games <- sqldf(sqlGameLine)
-nrCols <- dim(games)[2]/2
-oppCols <- paste("opp", names(games)[nrCols+1:nrCols], sep="_")
-names(games)[nrCols+1:nrCols] <- oppCols
-names(games) <- sub("scu_", "", names(games))
-names(games) <- sub("OffRebounds", "OR", names(games))
-names(games) <- sub("DefRebounds", "DR", names(games))
+gmStats <- sqldf(sqlGameLine)
+nrCols <- dim(gmStats)[2]/2
+oppCols <- paste("opp", names(gmStats)[nrCols+1:nrCols], sep="_")
+names(gmStats)[nrCols+1:nrCols] <- oppCols
+names(gmStats) <- sub("scu_", "", names(gmStats))
+names(gmStats) <- sub("OffRebounds", "OR", names(gmStats))
+names(gmStats) <- sub("DefRebounds", "DR", names(gmStats))
+names(gmStats) <- sub("TurnOvers", "TO", names(gmStats))
+names(gmStats) <- sub("3P", "FG3", names(gmStats))
 
+gmStats <- transform(gmStats, 
+                   pts = FTM + 2*FGM + 3*FG3M,
+                   opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
+                   ps = TO + 0.4*FTA + (FGA + FG3A) - 1.07 * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
+                   opp_ps = opp_TO + 0.4*opp_FTA + (opp_FGA + opp_FG3A) - 1.07 * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
+                   )
 
+gmStats <- transform(gmStats,
+                   avgps = round((ps + opp_ps) / 2),
+                   WARNING = abs(ps-opp_ps) > 4.0)
 
+gmStats <- transform(gmStats,
+                     Ortg = 100 * pts / avgps,
+                     Drtg = 100 * opp_pts / avgps,
+                     Home =  plg_ID == wed_ThuisPloeg)
 
+gmStats <- transform(gmStats,
+                     Nrtg = Ortg - Drtg)
 
+pdf("ratings.pdf")
+
+boxplot(Ortg ~ plg_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
+boxplot(Drtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
+boxplot(Nrtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+
+dev.off()
+
+pdf("streak.pdf")
+
+plot(Ortg ~ wed_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
+
+dev.off()
 
 
 
