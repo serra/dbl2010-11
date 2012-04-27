@@ -79,10 +79,14 @@ nrCols <- dim(gmStats)[2]/2
 oppCols <- paste("opp", names(gmStats)[nrCols+1:nrCols], sep="_")
 names(gmStats)[nrCols+1:nrCols] <- oppCols
 
+gmStats <- transform(gmStats,
+                     FTtrips = 0.4*FTA,
+                     opp_FTtrips =  0.4*opp_FTA)
+
 gmStats <- transform(gmStats, 
                    pts = FTM + 2*FGM + 3*FG3M,
                    opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
-                   ps = TO + 0.4*FTA + (FGA + FG3A) - 1.07 * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
+                   ps = TO + FTtrips + (FGA + FG3A) - 1.07 * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
                    opp_ps = opp_TO + 0.4*opp_FTA + (opp_FGA + opp_FG3A) - 1.07 * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
                    )
 
@@ -98,7 +102,19 @@ gmStats <- transform(gmStats,
 gmStats <- transform(gmStats,
                      Nrtg = Ortg - Drtg)
 
+gmStats <- transform(gmStats,
+                     EFGpct = (FGM+1.5*FG3M)/(FGA+FG3A),
+                     ORpct = OR / (OR + opp_DR),
+                     TOpct = TO / avgps,
+                     FTpct = FTtrips/(FGA+FG3A)
+                     )
 
+gmStats <- transform(gmStats,
+                     opp_EFGpct = (opp_FGM+1.5*opp_FG3M)/(opp_FGA+opp_FG3A),
+                     opp_ORpct = opp_OR / (opp_OR + DR),
+                     opp_TOpct = opp_TO / avgps,
+                     opp_FTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
+                     )
 
 ######################################################################
 #
@@ -106,17 +122,24 @@ gmStats <- transform(gmStats,
 #
 ######################################################################
 
-pdf("output/dlb2011-12regseason.pdf", paper="a4r", width=12)
+#pdf("output/dlb2011-12regseason.pdf", paper="a4r", width=12)
+
+# RATINGS - all teams
 
 boxplot(Ortg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
-boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
-boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+abline(h=median(gmStats$Ortg), lty=3)
 
-boxplot(avgps ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Possessions")
+boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
+abline(h=median(gmStats$Drtg), lty=3)
+
+boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+abline(h=median(gmStats$Nrtg), lty=3)
+
+# Ratings - by team
 
 opar <- par(no.readonly=TRUE)
 
-layout(matrix(c(1,2,3,4,5,6,7,8), 2, 4, byrow=TRUE), widths=c(4,1,1,1))
+layout(matrix(c(1,2,3,4,5,6,7,8), 2, 4, byrow=TRUE), widths=c(5,1,1,1))
 
 yLim <- c(60, 170)
 
@@ -131,20 +154,70 @@ for(i in 1:10){
        ylim=yLim,
        xaxt="n")
   lines(forPlot$wed_ID, forPlot$Drtg, 
-        pch=2, lty=1, col="red", type="o")
-
+        pch=2, lty=2, col="red", type="o")
+  abline(h=mean(forPlot$Ortg), lty=3, col="blue")
+  abline(h=mean(forPlot$Drtg), lty=3, col="red")
+  #   lines(forPlot$wed_ID, mean(forPlot$Drtg), 
+#         pch=2, lty=1, col="red", type="o")
+  
   legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg"),
          lty=c(1, 2), pch=c(1, 2), col=c("blue", "red"))
   
   boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
+  abline(h=median(gmStats$Ortg), lty=3)
   boxplot(forPlot$Drtg, data=forPlot, xlab="Drtg", col="red", ylim=yLim)
+  abline(h=median(gmStats$Drtg), lty=3)
   boxplot(forPlot$Nrtg, data=forPlot, xlab="Nrtg", ylim=c(-70,70))
-
+  abline(h=median(gmStats$Nrtg), lty=3)
+  
 }
 
 par(opar)
 
-dev.off()
+# battle of ratio's per team
+
+layout(matrix(c(1,2,3,4,5,6), 2, 3, byrow=TRUE), widths=c(5,1,1))
+
+yLim <- c(0, 1)
+
+for(i in 1:10){
+  plgID <- teams[i,1]
+  plgName <- teams[i,2]
+  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  
+  plot(forPlot$wed_ID, forPlot$EFGpct, 
+       type="o", pch=1, lty=1, col="blue", 
+       xlab=plgName, ylab="Ratio",
+       ylim=yLim,
+       xaxt="n")
+  lines(forPlot$wed_ID, forPlot$opp_EFGpct, 
+        pch=2, lty=1, col="red", type="o")
+  
+  boxplot(forPlot$EFGpct, data=forPlot, xlab="EFG%", col="blue", ylim=yLim )
+  boxplot(forPlot$opp_EFGpct, data=forPlot, xlab="Opp EFG%", col="red", ylim=yLim)
+  
+  plot(forPlot$wed_ID, forPlot$FTpct, 
+       type="o", pch=1, lty=1, col="blue", 
+       xlab=plgName, ylab="Ratio",
+       ylim=yLim,
+       xaxt="n")
+  lines(forPlot$wed_ID, forPlot$opp_FTpct, 
+        pch=2, lty=1, col="red", type="o")
+  
+  boxplot(forPlot$FTpct, data=forPlot, xlab="FT trip %", col="blue", ylim=yLim )
+  boxplot(forPlot$opp_FTpct, data=forPlot, xlab="Opp FT trip %", col="red", ylim=yLim)
+  
+}
+
+# Game pace
+
+boxplot(avgps ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Possessions")
+
+
+
+
+
+#dev.off()
 
 
 
