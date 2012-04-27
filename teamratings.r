@@ -144,18 +144,17 @@ for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  gameNrs = c(1:36)
   
-  plot(forPlot$wed_ID, forPlot$Ortg, 
+  plot(gameNrs, forPlot$Ortg, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="Rating",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$Drtg, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$Drtg, 
         pch=2, lty=2, col="red", type="o")
+
   abline(h=mean(forPlot$Ortg), lty=3, col="blue")
   abline(h=mean(forPlot$Drtg), lty=3, col="red")
-  #   lines(forPlot$wed_ID, mean(forPlot$Drtg), 
-#         pch=2, lty=1, col="red", type="o")
   
   legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg"),
          lty=c(1, 2), pch=c(1, 2), col=c("blue", "red"))
@@ -193,13 +192,13 @@ for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  gameNrs = c(1:36)
   
-  plot(forPlot$wed_ID, forPlot$EFGpct, 
+  plot(gameNrs, forPlot$EFGpct, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="Ratio",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$opp_EFGpct, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$opp_EFGpct, 
         pch=2, lty=1, col="red", type="o")
   
   boxplot(forPlot$EFGpct, data=forPlot, xlab="EFG%", col="blue", ylim=yLim )
@@ -207,12 +206,11 @@ for(i in 1:10){
   boxplot(forPlot$opp_EFGpct, data=forPlot, xlab="Opp EFG%", col="red", ylim=yLim)
   abline(h=median(gmStats$EFGpct), lty=3)
   
-  plot(forPlot$wed_ID, forPlot$FTpct, 
+  plot(gameNrs, forPlot$FTpct, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="Ratio",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$opp_FTpct, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$opp_FTpct, 
         pch=2, lty=1, col="red", type="o")
   
   boxplot(forPlot$FTpct, data=forPlot, xlab="FT trip %", col="blue", ylim=yLim )
@@ -220,12 +218,11 @@ for(i in 1:10){
   boxplot(forPlot$opp_FTpct, data=forPlot, xlab="Opp FT trip %", col="red", ylim=yLim)
   abline(h=median(gmStats$opp_FTpct), lty=3)
   
-  plot(forPlot$wed_ID, forPlot$ORpct, 
+  plot(gameNrs, forPlot$ORpct, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="OR Ratio",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$opp_ORpct, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$opp_ORpct, 
         pch=2, lty=1, col="red", type="o")
   
   boxplot(forPlot$ORpct, data=forPlot, xlab="OR%", col="blue", ylim=yLim )
@@ -233,12 +230,11 @@ for(i in 1:10){
   boxplot(forPlot$opp_ORpct, data=forPlot, xlab="Opp OR%", col="red", ylim=yLim)
   abline(h=median(gmStats$opp_ORpct), lty=3)
   
-  plot(forPlot$wed_ID, forPlot$TOpct, 
+  plot(gameNrs, forPlot$TOpct, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="TO%",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$opp_TOpct, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$opp_TOpct, 
         pch=2, lty=1, col="red", type="o")
   
   boxplot(forPlot$TOpct, data=forPlot, xlab="TO%", col="blue", ylim=yLim )
@@ -263,17 +259,16 @@ for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  gameNrs <- c(1:36)
   
-  plot(forPlot$wed_ID, forPlot$FGA, 
+  plot(gameNrs, forPlot$FGA, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="#Shots",
-       ylim=yLim,
-       xaxt="n")
-  lines(forPlot$wed_ID, forPlot$FG3A, 
+       ylim=yLim)
+  lines(gameNrs, forPlot$FG3A, 
        type="o", pch=1, lty=1, col="purple", 
        xlab=plgName, 
-       ylim=yLim,
-       xaxt="n")
+       ylim=yLim)
   abline(h=mean(forPlot$FGA), lty=3, col="blue")
   abline(h=mean(forPlot$FG3A), lty=3, col="purple")
   
