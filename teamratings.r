@@ -24,7 +24,7 @@ names(psData) <- sub("TurnOvers", "TO", names(psData))
 names(psData) <- sub("3P", "FG3", names(psData))
                  
 games <- sqldf("select wed_ID from sts group by wed_ID")
-teams <- sqldf(paste("select plg_ID, thuis_club from sts",
+teams <- sqldf(paste("select plg_ID, thuis_club as plg_Name from sts",
                      "where plg_ID = wed_ThuisPloeg",
                      "group by plg_ID, thuis_club"))
 
@@ -35,6 +35,10 @@ sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ",
                   "from sts where plg_Id=wed_ThuisPloeg ",
                   "group by wed_Id, plg_ID, wed_UitPloeg, wed_ThuisPloeg")
 stsThuis <- sqldf(sqlThuis)
+
+teamById <- function (plgId) {
+   return(sqldf(paste("select plg_Name from teams where plg_ID=",plgId)))
+}
 
 # add zeros for missing columns
 missingCols <- setdiff(names(psData), names(stsThuis))  # get missing cols
@@ -51,6 +55,7 @@ psData <- rbind(psData, stsThuis, stsUit)
 # aggregate by game and team
 agg <- aggregate(psData[5:13] , by=list(wed_ID=psData$wed_ID, plg_ID=psData$plg_ID, wed_UitPloeg=psData$wed_UitPloeg, wed_ThuisPloeg=psData$wed_ThuisPloeg), FUN=sum)
 
+# now we join the tables, so that we have opposing numbers on the same game line
 sqlGameLine = paste("select * from agg ",
                     "inner join agg opp on ",
                     "agg.wed_ID=opp.wed_ID and (",
@@ -61,8 +66,9 @@ sqlGameLine = paste("select * from agg ",
                     "order by wed_ID"
                     )
 
-# pretify columns
-gmStats <- sqldf(sqlGameLine)
+gmStats <- sqldf(sqlGameLine) 
+
+# pretify columns; opponents columns are prefixed with "opp_"
 nrCols <- dim(gmStats)[2]/2
 oppCols <- paste("opp", names(gmStats)[nrCols+1:nrCols], sep="_")
 names(gmStats)[nrCols+1:nrCols] <- oppCols
@@ -86,26 +92,43 @@ gmStats <- transform(gmStats,
 gmStats <- transform(gmStats,
                      Nrtg = Ortg - Drtg)
 
-pdf("output/ratings.pdf")
+
+#pdf("output/dlb2011-12regseason.pdf", paper="a4r")
 
 boxplot(Ortg ~ plg_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
 boxplot(Drtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
 boxplot(Nrtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
 
-dev.off()
-
-pdf("output/pace.pdf")
-
 boxplot(avgps ~ plg_ID, data=gmStats, xlab="Team", ylab="Possessions")
 
-dev.off()
+opar <- par(no.readonly=TRUE)
 
-#pdf("output/game-by-game.pdf")
+layout(matrix(c(1,2,3,4,5,6,7,8), 2, 4, byrow=TRUE), widths=c(4,1,1,1))
 
-plgID <- teams[10,1]
-forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
-plot(forPlot$wed_ID, forPlot$Ortg, type="b", pch=17, lty=2, col="blue", xlab="Team", ylab="Ortg (Offensive Rating)")
-lines(forPlot$wed_ID, forPlot$Drtg, pch=15, lty=1, col="red", type="b")
+yLim <- c(60, 170)
+
+for(i in 1:10){
+  plgID <- teams[i,1]
+  plgName <- teams[i,2]
+  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  
+  plot(forPlot$wed_ID, forPlot$Ortg, 
+       type="o", pch=1, lty=1, col="blue", 
+       xlab=plgName, ylab="Rating",
+       ylim=yLim)
+  lines(forPlot$wed_ID, forPlot$Drtg, 
+        pch=2, lty=1, col="red", type="o")
+
+  legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg"),
+         lty=c(1, 2), pch=c(1, 2), col=c("blue", "red"))
+  
+  boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
+  boxplot(forPlot$Drtg, data=forPlot, xlab="Drtg", col="red", ylim=yLim)
+  boxplot(forPlot$Nrtg, data=forPlot, xlab="Nrtg", ylim=c(-70,70))
+
+}
+
+par(opar)
 
 #dev.off()
 
