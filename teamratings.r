@@ -36,9 +36,9 @@ sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ",
                   "group by wed_Id, plg_ID, wed_UitPloeg, wed_ThuisPloeg")
 stsThuis <- sqldf(sqlThuis)
 
-teamById <- function (plgId) {
-   return(sqldf(paste("select plg_Name from teams where plg_ID=",plgId)))
-}
+# teamById <- function (origId) {
+#    return(sqldf(paste("select plg_Name from teams where plg_ID=",origId))[1])
+# }
 
 # add zeros for missing columns
 missingCols <- setdiff(names(psData), names(stsThuis))  # get missing cols
@@ -54,6 +54,12 @@ psData <- rbind(psData, stsThuis, stsUit)
 
 # aggregate by game and team
 agg <- aggregate(psData[5:13] , by=list(wed_ID=psData$wed_ID, plg_ID=psData$plg_ID, wed_UitPloeg=psData$wed_UitPloeg, wed_ThuisPloeg=psData$wed_ThuisPloeg), FUN=sum)
+
+# add team name
+agg <- sqldf("select agg.*, teams.plg_Name from agg inner join teams on agg.plg_ID=teams.plg_ID")
+
+agg <- transform(agg, 
+                 plg_ShortName = substr(plg_Name,0,8))
 
 # now we join the tables, so that we have opposing numbers on the same game line
 sqlGameLine = paste("select * from agg ",
@@ -93,13 +99,20 @@ gmStats <- transform(gmStats,
                      Nrtg = Ortg - Drtg)
 
 
-#pdf("output/dlb2011-12regseason.pdf", paper="a4r")
 
-boxplot(Ortg ~ plg_ID, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
-boxplot(Drtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
-boxplot(Nrtg ~ plg_ID, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+######################################################################
+#
+# Output
+#
+######################################################################
 
-boxplot(avgps ~ plg_ID, data=gmStats, xlab="Team", ylab="Possessions")
+pdf("output/dlb2011-12regseason.pdf", paper="a4r", width=12)
+
+boxplot(Ortg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
+boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
+boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+
+boxplot(avgps ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Possessions")
 
 opar <- par(no.readonly=TRUE)
 
@@ -115,7 +128,8 @@ for(i in 1:10){
   plot(forPlot$wed_ID, forPlot$Ortg, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="Rating",
-       ylim=yLim)
+       ylim=yLim,
+       xaxt="n")
   lines(forPlot$wed_ID, forPlot$Drtg, 
         pch=2, lty=1, col="red", type="o")
 
@@ -130,7 +144,7 @@ for(i in 1:10){
 
 par(opar)
 
-#dev.off()
+dev.off()
 
 
 
