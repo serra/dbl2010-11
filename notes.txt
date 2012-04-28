@@ -13,7 +13,7 @@ then merge the dataframes
 
 
 
-
+compare to season standings
 
 
 

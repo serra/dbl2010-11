@@ -131,12 +131,50 @@ gmStats <- transform(gmStats,
 ######################################################################
 
 pdf("output/dlb2011-12regseason.pdf", paper="a4r", width=12)
-
-# Ratings - by team
-
 opar <- par(no.readonly=TRUE)
 
-layout(matrix(c(1,2,3,4,5,6,7,8), 2, 4, byrow=TRUE), widths=c(5,1,1,1))
+# Offensive and Defensive Ratings - Competition
+
+boxplot(Ortg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
+abline(h=median(gmStats$Ortg), lty=3)
+
+boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
+abline(h=median(gmStats$Drtg), lty=3)
+
+boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
+abline(h=median(gmStats$Nrtg), lty=3)
+
+# Performance Indicators - Competition
+
+layout(matrix(c(1), 1, 1, byrow=TRUE))
+
+boxplot(EFGpct ~ plg_ShortName, data=gmStats, 
+        ylab="EFG%",
+        ylim=c(0,1.0))
+abline(h=median(gmStats$EFGpct), lty=3)
+title(main="Effective Fieldgoal Percentage (EFG%) by team")
+
+boxplot(ORpct ~ plg_ShortName, data=gmStats, 
+        ylab="OR%", ylim=c(0,1.0))
+abline(h=median(gmStats$ORpct), lty=3)
+title(main="Offensive Rebound Percentage (OR%) by team: (OR/(OR+DR_opponent))")
+
+layout(matrix(c(1,2), 2, 1, byrow=TRUE))
+
+boxplot(FTpct ~ plg_ShortName, data=gmStats, 
+        ylab="FTT%", ylim=c(0,0.5))
+abline(h=median(gmStats$FTpct), lty=3)
+title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) by team: FT trips / (FGA + 3FGA)")
+
+boxplot(TOpct ~ plg_ShortName, data=gmStats, 
+        ylab="TO%", 
+        ylim=c(0,0.5))
+abline(h=median(gmStats$TOpct), lty=3)
+title(main="Turnover Percentage (TO%) by team: (TO/#possessions)")
+
+# Offensive and Defensive Ratings - by team
+
+layout(matrix(c(1,2,3,4), 1, 4, byrow=TRUE), widths=c(5,1,1,1))
 
 yLim <- c(60, 170)
 
@@ -148,16 +186,18 @@ for(i in 1:10){
   
   plot(gameNrs, forPlot$Ortg, 
        type="o", pch=1, lty=1, col="blue", 
-       xlab=plgName, ylab="Rating",
+       ylab="Rating",
        ylim=yLim)
   lines(gameNrs, forPlot$Drtg, 
         pch=2, lty=2, col="red", type="o")
-
-  abline(h=mean(forPlot$Ortg), lty=3, col="blue")
-  abline(h=mean(forPlot$Drtg), lty=3, col="red")
+  title(main=paste(plgName, " - Offensive and Defensive Ratings"))
   
-  legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg"),
-         lty=c(1, 2), pch=c(1, 2), col=c("blue", "red"))
+  abline(h=mean(forPlot$Ortg), lty=1, col="blue")
+  abline(h=mean(forPlot$Drtg), lty=2, col="red")
+  abline(h=mean(gmStats$Drtg), lty=3)
+  
+  legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg", "League Avg"),
+         lty=c(1, 2, 3), pch=c(1, 2, 0), col=c("blue", "red", "black"))
   
   boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
   abline(h=median(gmStats$Ortg), lty=3)
@@ -169,18 +209,6 @@ for(i in 1:10){
 }
 
 par(opar)
-
-# RATINGS - all teams
-
-boxplot(Ortg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
-abline(h=median(gmStats$Ortg), lty=3)
-
-boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
-abline(h=median(gmStats$Drtg), lty=3)
-
-boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
-abline(h=median(gmStats$Nrtg), lty=3)
-
 
 # battle of ratio's per team
 
@@ -247,7 +275,10 @@ par(opar)
 
 # Game pace
 
-boxplot(avgps ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Possessions")
+boxplot(avgps ~ plg_ShortName, data=gmStats, 
+        ylab="#Possessions")
+abline(h=median(gmStats$avgps), lty=3)
+title(main="Game Pace by team: (TO/#possessions)")
 
 # Two vs three
 
