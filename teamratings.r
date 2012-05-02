@@ -4,6 +4,8 @@
 #clear workspace?
 
 library(sqldf)
+library(ggplot2)
+library(reshape2)
 
 regSeasonID <- 421
 playOffID <- 627
@@ -108,21 +110,21 @@ gmStats <- transform(gmStats,
 gmStats <- transform(gmStats,
                      EFGpct = (FGM+1.5*FG3M)/(FGA+FG3A),
                      ORpct = OR / (OR + opp_DR),
-                     TOpct = TO / avgps,
-                     FTpct = FTtrips/(FGA+FG3A)
+                     TOpct = TO / avgps
                      )
 
 gmStats <- transform(gmStats,
                      opp_EFGpct = (opp_FGM+1.5*opp_FG3M)/(opp_FGA+opp_FG3A),
                      opp_ORpct = opp_OR / (opp_OR + DR),
                      opp_TOpct = opp_TO / avgps,
-                     opp_FTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
+                     opp_FTTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
                      )
 
 gmStats <- transform(gmStats,
-                     FGApct = FGA / (FGA + FG3A),
-                     FGA3pct = FG3A / (FGA + FG3A))
-
+                     FGApct = FGA / (FGA + FG3A + FTtrips),
+                     FGA3pct = FG3A / (FGA + FG3A + FTtrips),
+                     FTTpct = FTtrips / (FGA + FG3A + FTtrips)
+                     )
 
 ######################################################################
 #
@@ -130,7 +132,7 @@ gmStats <- transform(gmStats,
 #
 ######################################################################
 
-pdf("output/dlb2011-12regseason.pdf", paper="a4r", width=12)
+pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
 opar <- par(no.readonly=TRUE)
 
 # Offensive and Defensive Ratings - Competition
@@ -161,9 +163,9 @@ title(main="Offensive Rebound Percentage (OR%) by team: (OR/(OR+DR_opponent))")
 
 layout(matrix(c(1,2), 2, 1, byrow=TRUE))
 
-boxplot(FTpct ~ plg_ShortName, data=gmStats, 
+boxplot(FTTpct ~ plg_ShortName, data=gmStats, 
         ylab="FTT%", ylim=c(0,0.5))
-abline(h=median(gmStats$FTpct), lty=3)
+abline(h=median(gmStats$FTTpct), lty=3)
 title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) by team: FT trips / (FGA + 3FGA)")
 
 boxplot(TOpct ~ plg_ShortName, data=gmStats, 
@@ -234,17 +236,17 @@ for(i in 1:10){
   boxplot(forPlot$opp_EFGpct, data=forPlot, xlab="Opp EFG%", col="red", ylim=yLim)
   abline(h=median(gmStats$EFGpct), lty=3)
   
-  plot(gameNrs, forPlot$FTpct, 
+  plot(gameNrs, forPlot$FTTpct, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="Ratio",
        ylim=yLim)
-  lines(gameNrs, forPlot$opp_FTpct, 
+  lines(gameNrs, forPlot$opp_FTTpct, 
         pch=2, lty=1, col="red", type="o")
   
-  boxplot(forPlot$FTpct, data=forPlot, xlab="FT trip %", col="blue", ylim=yLim )
-  abline(h=median(gmStats$FTpct), lty=3)
-  boxplot(forPlot$opp_FTpct, data=forPlot, xlab="Opp FT trip %", col="red", ylim=yLim)
-  abline(h=median(gmStats$opp_FTpct), lty=3)
+  boxplot(forPlot$FTTpct, data=forPlot, xlab="FT trip %", col="blue", ylim=yLim )
+  abline(h=median(gmStats$FTTpct), lty=3)
+  boxplot(forPlot$opp_FTTpct, data=forPlot, xlab="Opp FT trip %", col="red", ylim=yLim)
+  abline(h=median(gmStats$opp_FTTpct), lty=3)
   
   plot(gameNrs, forPlot$ORpct, 
        type="o", pch=1, lty=1, col="blue", 
@@ -280,9 +282,9 @@ boxplot(avgps ~ plg_ShortName, data=gmStats,
 abline(h=median(gmStats$avgps), lty=3)
 title(main="Game Pace by team: (TO/#possessions)")
 
-# Two vs three
+# Shooting plays (2/3/FT)
 
-layout(matrix(c(1,2,3,4,5,6), 2, 3, byrow=TRUE), widths=c(5,1,1))
+layout(matrix(c(1,2,3,4,5,2,3,4), 2, 4, byrow=TRUE), widths=c(5,1,1,1))
 
 yLim <- c(0, 60)
 
@@ -292,25 +294,63 @@ for(i in 1:10){
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
   gameNrs <- c(1:36)
   
+  # absolute
   plot(gameNrs, forPlot$FGA, 
        type="o", pch=1, lty=1, col="blue", 
        xlab=plgName, ylab="#Shots",
        ylim=yLim)
   lines(gameNrs, forPlot$FG3A, 
-       type="o", pch=1, lty=1, col="purple", 
-       xlab=plgName, 
-       ylim=yLim)
+        type="o", pch=1, lty=1, col="purple", 
+        xlab=plgName, 
+        ylim=yLim)
+  lines(gameNrs, forPlot$FTtrip, 
+        type="o", pch=1, lty=1, col="red", 
+        xlab=plgName, 
+        ylim=yLim)
+  
   abline(h=mean(forPlot$FGA), lty=3, col="blue")
   abline(h=mean(forPlot$FG3A), lty=3, col="purple")
+  abline(h=mean(forPlot$FTtrip), lty=3, col="red")
   
   boxplot((forPlot$FGApct), data=forPlot, 
           xlab="2FGA", col="blue", 
           ylim=c(0.0, 1.0) )
   abline(h=median(gmStats$FGApct), lty=3)
+  
   boxplot(forPlot$FGA3pct, data=forPlot, 
           xlab="3FGA", col="purple",
           ylim=c(0.0, 1.0) )
   abline(h=median(gmStats$FGA3pct), lty=3)
+  
+  boxplot(forPlot$FTTpct, data=forPlot, 
+          xlab="FT trips", col="purple",
+          ylim=c(0.0, 1.0) )
+  abline(h=median(gmStats$FGA3pct), lty=3)
+  
+  # relative
+  plot(gameNrs, forPlot$FGApct, 
+       type="o", pch=1, lty=1, col="blue", 
+       xlab=plgName, ylab="Shot Selection Ratio",
+       ylim=c(0.0, 1.0))
+  lines(gameNrs, forPlot$FGA3pct, 
+        type="o", pch=1, lty=1, col="purple", 
+        xlab=plgName, 
+        ylim=c(0.0, 1.0))
+  lines(gameNrs, forPlot$FTTpct, 
+        type="o", pch=1, lty=1, col="red", 
+        xlab=plgName, 
+        ylim=c(0.0, 1.0))
+  
+  
+  
+#   # create a bar plot using ggplot   
+#   fields <- c("FGA", "FG3A", "FTtrips", "TO")
+#   plays <- forPlot[fields]
+#   plays["gameNrs"] <- gameNrs
+#   meltedPlays <- melt(plays, id=c('gameNrs'))
+#   qplot(factor(gameNrs), data=meltedPlays, 
+#         geom="bar", fill=variable, weight=value)
+  
   
 }
 
