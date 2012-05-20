@@ -1,7 +1,8 @@
-# summary I keep for when doin a fully automated run;
-# right now I'm only working interactively
+# todo:
+#  - configure limits for performace indicators
+#  - output per team?
+#  - legends on all charts
 
-#clear workspace?
 
 library(sqldf)
 library(ggplot2)
@@ -152,25 +153,23 @@ layout(matrix(c(1), 1, 1, byrow=TRUE))
 
 boxplot(EFGpct ~ plg_ShortName, data=gmStats, 
         ylab="EFG%",
-        ylim=c(0,1.0))
+        ylim=c(0.2,0.8))
 abline(h=median(gmStats$EFGpct), lty=3)
 title(main="Effective Fieldgoal Percentage (EFG%) by team")
 
 boxplot(ORpct ~ plg_ShortName, data=gmStats, 
-        ylab="OR%", ylim=c(0,1.0))
+        ylab="OR%", ylim=c(0,0.7))
 abline(h=median(gmStats$ORpct), lty=3)
 title(main="Offensive Rebound Percentage (OR%) by team: (OR/(OR+DR_opponent))")
 
-layout(matrix(c(1,2), 2, 1, byrow=TRUE))
-
 boxplot(FTTpct ~ plg_ShortName, data=gmStats, 
-        ylab="FTT%", ylim=c(0,0.5))
+        ylab="FTT%", ylim=c(0,0.3))
 abline(h=median(gmStats$FTTpct), lty=3)
 title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) by team: FT trips / (FGA + 3FGA)")
 
 boxplot(TOpct ~ plg_ShortName, data=gmStats, 
         ylab="TO%", 
-        ylim=c(0,0.5))
+        ylim=c(0,0.4))
 abline(h=median(gmStats$TOpct), lty=3)
 title(main="Turnover Percentage (TO%) by team: (TO/#possessions)")
 
@@ -194,12 +193,14 @@ for(i in 1:10){
         pch=2, lty=2, col="red", type="o")
   title(main=paste(plgName, " - Offensive and Defensive Ratings"))
   
-  abline(h=mean(forPlot$Ortg), lty=1, col="blue")
-  abline(h=mean(forPlot$Drtg), lty=2, col="red")
-  abline(h=mean(gmStats$Drtg), lty=3)
+  abline(h=median(forPlot$Ortg), lty=1, col="blue")
+  abline(h=median(forPlot$Drtg), lty=2, col="red")
+  # plot a line for the league average; 
+  # which is the same for off and def rating:
+  abline(h=median(gmStats$Drtg), lty=3)
   
   legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg", "League Avg"),
-         lty=c(1, 2, 3), pch=c(1, 2, 0), col=c("blue", "red", "black"))
+         lty=c(1, 2, 3), col=c("blue", "red", "black"))
   
   boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
   abline(h=median(gmStats$Ortg), lty=3)
@@ -280,7 +281,7 @@ par(opar)
 boxplot(avgps ~ plg_ShortName, data=gmStats, 
         ylab="#Possessions")
 abline(h=median(gmStats$avgps), lty=3)
-title(main="Game Pace by team: (TO/#possessions)")
+title(main="Game Pace by team")
 
 # Shooting plays (2/3/FT)
 
@@ -323,9 +324,9 @@ for(i in 1:10){
   abline(h=median(gmStats$FGA3pct), lty=3)
   
   boxplot(forPlot$FTTpct, data=forPlot, 
-          xlab="FT trips", col="purple",
+          xlab="FT trips", col="red",
           ylim=c(0.0, 1.0) )
-  abline(h=median(gmStats$FGA3pct), lty=3)
+  abline(h=median(gmStats$FTTpct), lty=3)
   
   # relative
   plot(gameNrs, forPlot$FGApct, 
