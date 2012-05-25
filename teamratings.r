@@ -3,10 +3,10 @@
 #  - output per team?
 #  - legends on all charts
 
-
 library(sqldf)
 library(ggplot2)
 library(reshape2)
+library(lattice)
 
 regSeasonID <- 421
 playOffID <- 627
@@ -147,9 +147,13 @@ abline(h=median(gmStats$Drtg), lty=3)
 boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
 abline(h=median(gmStats$Nrtg), lty=3)
 
-# Performance Indicators - Competition
+boxplot(pts ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Points")
+abline(h=median(gmStats$pts), lty=3)
 
-layout(matrix(c(1), 1, 1, byrow=TRUE))
+boxplot(opp_pts ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Opponent Points")
+abline(h=median(gmStats$opp_pts), lty=3)
+     
+# Performance Indicators - Competition
 
 boxplot(EFGpct ~ plg_ShortName, data=gmStats, 
         ylab="EFG%",
@@ -172,6 +176,22 @@ boxplot(TOpct ~ plg_ShortName, data=gmStats,
         ylim=c(0,0.4))
 abline(h=median(gmStats$TOpct), lty=3)
 title(main="Turnover Percentage (TO%) by team: (TO/#possessions)")
+
+# correlation of performance indicators
+
+d = data.frame(gmStats$Nrtg, 
+              gmStats$EFGpct, gmStats$ORpct, 
+              gmStats$TOpct, gmStats$FTTpct
+               # when evaluating the competion, 
+               # it does not make sense to include opponent stats
+               #gmStats$opp_EFGpct, gmStats$opp_ORpct, 
+               #gmStats$opp_TOpct, gmStats$opp_FTTpct
+              )
+names(d) <- sub("^gmStats.", "", names(d))
+corComp = cor(d)
+print(levelplot(corComp))
+print(corComp)
+
 
 # Offensive and Defensive Ratings - by team
 
@@ -214,6 +234,23 @@ for(i in 1:10){
 par(opar)
 
 # battle of ratio's per team
+
+for(i in 1:10){
+  plgID <- teams[i,1]
+  plgName <- teams[i,2]
+  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  d = data.frame(forPlot$Nrtg, forPlot$Ortg, forPlot$Drtg,
+                 forPlot$EFGpct, forPlot$ORpct, 
+                 forPlot$TOpct, forPlot$FTTpct,
+                 forPlot$opp_EFGpct, forPlot$opp_ORpct, 
+                 forPlot$opp_TOpct, forPlot$opp_FTTpct
+                 )
+  names(d) <- sub("^forPlot.", "", names(d))
+  corTeam = cor(d)
+  print(levelplot(corTeam, main=paste("Performance heatmap for ",plgName)))
+}
+
+# Details
 
 layout(matrix(c(1,2,3,4,5,6), 2, 3, byrow=TRUE), widths=c(5,1,1))
 
@@ -272,6 +309,15 @@ for(i in 1:10){
   abline(h=median(gmStats$TOpct), lty=3)
   boxplot(forPlot$opp_TOpct, data=forPlot, xlab="Opp TO %", col="red", ylim=yLim)
   abline(h=median(gmStats$opp_TOpct), lty=3)
+
+  
+  forCor <- data.frame(forPlot$Nrtg, forPlot$EFGpct,
+                       forPlot$ORpct, forPlot$TOpct, 
+                       forPlot$FTTpct)
+  forCorOpp <- data.frame(forPlot$Nrtg, forPlot$opp_EFGpct,
+                          forPlot$opp_ORpct, forPlot$opp_TOpct, 
+                          forPlot$opp_FTTpct)
+  
 }
 
 par(opar)
@@ -342,8 +388,6 @@ for(i in 1:10){
         xlab=plgName, 
         ylim=c(0.0, 1.0))
   
-  
-  
 #   # create a bar plot using ggplot   
 #   fields <- c("FGA", "FG3A", "FTtrips", "TO")
 #   plays <- forPlot[fields]
@@ -352,13 +396,35 @@ for(i in 1:10){
 #   qplot(factor(gameNrs), data=meltedPlays, 
 #         geom="bar", fill=variable, weight=value)
   
-  
 }
 
 par(opar)
 
 dev.off()
 
+# print some table to screen
 
+ratingTable <- sprintf("\n\n %-30s %5s %5s %5s %5s \n", 
+                       "Team",
+                       "pts",
+                       "opp",
+                       "Ortg",
+                       "Drtg")
 
+for(i in 1:10){
+  plgID <- teams[i,1]
+  plgName <- teams[i,2]
+  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  gameNrs = c(1:36)
+  
+  row <- sprintf("%-30s %5.1f %5.1f %5.1f %5.1f \n", 
+                 plgName,
+                 mean(forPlot$pts),
+                 mean(forPlot$opp_pts),
+                 mean(forPlot$Ortg),
+                 mean(forPlot$Drtg))
+  ratingTable <- paste (ratingTable, row)
+}
+
+cat(ratingTable)
                  
