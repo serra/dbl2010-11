@@ -238,9 +238,6 @@ fttPctPlot <- ggplot(gmStats, aes(plg_ShortName, FTTpct)) +
   ylab("FTT%")    
 print(fttPctPlot)
 
-
-stop("intentional stop!")
-
 # correlation of performance indicators
 
 d = data.frame(gmStats$Nrtg, 
@@ -253,33 +250,48 @@ d = data.frame(gmStats$Nrtg,
               )
 names(d) <- sub("^gmStats.", "", names(d))
 corComp = cor(d)
+
 p <- levelplot(corComp, panel=function(...) {
                               arg <- list(...)
                               panel.levelplot(...)
                               panel.text(arg$x, arg$y, round(arg$z,2))})
 
 print(p)
-title("Correlation of Key Perfomrance Indicators with Net Rating")
+
+corComp.m <- melt(corComp)
+corPlot <- ggplot(corComp.m, 
+                  aes(Var1, 
+                      Var2, 
+                      fill = value)) + 
+                        geom_tile() + 
+                        scale_fill_gradient2(low = "red",  high = "blue")
+print(corPlot)
+
+
 
 efgPlot <- ggplot(gmStats, aes(EFGpct, Nrtg)) + 
   stat_smooth(method = "lm") + 
-  geom_point()
+  geom_point(aes(colour=plg_ShortName))  # consider using shape per team
 print(efgPlot)
 
 orPlot <- ggplot(gmStats, aes(ORpct, Nrtg)) + 
   stat_smooth(method = "lm") + 
-  geom_point()
+  geom_point(aes(colour=plg_ShortName))
 print(orPlot)
 
 toPlot <- ggplot(gmStats, aes(TOpct, Nrtg)) + 
   stat_smooth(method = "lm") + 
-  geom_point()
+  geom_point(aes(colour=plg_ShortName))
 print(toPlot)
 
 fttPlot <- ggplot(gmStats, aes(FTTpct, Nrtg)) + 
   stat_smooth(method = "lm") + 
-  geom_point()
+  geom_point(aes(colour=plg_ShortName))
 print(fttPlot)
+
+stop("Debugging ...")
+
+
 
 par(opar)
 
