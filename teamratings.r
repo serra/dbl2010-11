@@ -7,6 +7,7 @@ library(sqldf)
 library(ggplot2)
 library(reshape2)
 library(lattice)
+library(gplots)
 
 regSeasonID <- 421
 playOffID <- 627
@@ -127,55 +128,113 @@ gmStats <- transform(gmStats,
                      FTTpct = FTtrips / (FGA + FG3A + FTtrips)
                      )
 
+
+
+
+######################################################################
+#
+# Utility function
+#
+######################################################################
+
+
+
 ######################################################################
 #
 # Output
 #
 ######################################################################
 
-pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
+# pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
 opar <- par(no.readonly=TRUE)
 
 # Offensive and Defensive Ratings - Competition
+ortgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Ortg)) + 
+                  geom_boxplot(aes(fill=plg_ShortName)) +
+                  geom_hline(aes(yintercept=median(Ortg)), linetype="dotted") +
+                  opts(title ="Offensive Rating by Team") +
+                  xlab("") + 
+                  ylab("Points per 100 possessions")    
+print(ortgByTeamPlot)
 
-boxplot(Ortg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Ortg (Offensive Rating)")
-abline(h=median(gmStats$Ortg), lty=3)
+drtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Drtg)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(Drtg)), linetype="dotted") +
+  opts(title ="Defensive Rating by Team") +
+  xlab("") + 
+  ylab("Points per 100 possessions")    
+print(drtgByTeamPlot)
 
-boxplot(Drtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Drtg (Defensive Rating)")
-abline(h=median(gmStats$Drtg), lty=3)
+nrtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Nrtg)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(Nrtg)), linetype="dotted") +
+  opts(title ="Net Rating by Team") +
+  xlab("") + 
+  ylab("Points Difference per 100 possessions")    
+print(nrtgByTeamPlot)
 
-boxplot(Nrtg ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Nrtg (Net Rating, Ort-Drtg)")
-abline(h=median(gmStats$Nrtg), lty=3)
+ptsByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, pts)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(pts)), linetype="dotted") +
+  opts(title ="Points per Game by Team") +
+  xlab("") + 
+  ylab("Points")    
+print(ptsByTeamPlot)
 
-boxplot(pts ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Points")
-abline(h=median(gmStats$pts), lty=3)
+ptsAllowedByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, opp_pts)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(opp_pts)), linetype="dotted") +
+  opts(title ="Points Allowed per Game by Team") +
+  xlab("") + 
+  ylab("Points")    
+print(ptsAllowedByTeamPlot)
 
-boxplot(opp_pts ~ plg_ShortName, data=gmStats, xlab="Team", ylab="Opponent Points")
-abline(h=median(gmStats$opp_pts), lty=3)
-     
+ptsDiffByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, (pts-opp_pts))) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=0), linetype="dotted") +
+  geom_hline(aes(yintercept=-5), linetype="dotted") +
+  geom_hline(aes(yintercept=5), linetype="dotted") +
+  opts(title ="Points Difference per Game by Team") +
+  xlab("") + 
+  ylab("Points") 
+                            
+print(ptsDiffByTeamPlot)
+
+stop("intentional stop!")
+
+
+boxplot((pts-opp_pts) ~ plg_ShortName, data=gmStats, 
+        ylab="Net Points")
+abline(h=0, lty=3)
+title("Point Difference per Game by Team")
+mtext("+6", side=2, at=6)
+mtext("-6", side=2, at=-6)
+abline(h=6.0, lty=3)
+abline(h=-6.0, lty=3)
+
 # Performance Indicators - Competition
 
 boxplot(EFGpct ~ plg_ShortName, data=gmStats, 
         ylab="EFG%",
         ylim=c(0.2,0.8))
 abline(h=median(gmStats$EFGpct), lty=3)
-title(main="Effective Fieldgoal Percentage (EFG%) by team")
+title(main="Effective Fieldgoal Percentage (EFG%) per Game by Team")
 
 boxplot(ORpct ~ plg_ShortName, data=gmStats, 
         ylab="OR%", ylim=c(0,0.7))
 abline(h=median(gmStats$ORpct), lty=3)
-title(main="Offensive Rebound Percentage (OR%) by team: (OR/(OR+DR_opponent))")
+title(main="Offensive Rebound Percentage (OR%) per Game by team: (OR/(OR+DR_opponent))")
 
 boxplot(FTTpct ~ plg_ShortName, data=gmStats, 
         ylab="FTT%", ylim=c(0,0.3))
 abline(h=median(gmStats$FTTpct), lty=3)
-title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) by team: FT trips / (FGA + 3FGA)")
+title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) per Game by team: FT trips / (FGA + 3FGA)")
 
 boxplot(TOpct ~ plg_ShortName, data=gmStats, 
         ylab="TO%", 
         ylim=c(0,0.4))
 abline(h=median(gmStats$TOpct), lty=3)
-title(main="Turnover Percentage (TO%) by team: (TO/#possessions)")
+title(main="Turnover Percentage (TO%) per Game by team: (TO/#possessions)")
 
 # correlation of performance indicators
 
@@ -189,9 +248,35 @@ d = data.frame(gmStats$Nrtg,
               )
 names(d) <- sub("^gmStats.", "", names(d))
 corComp = cor(d)
-print(levelplot(corComp))
-print(corComp)
+p <- levelplot(corComp, panel=function(...) {
+                              arg <- list(...)
+                              panel.levelplot(...)
+                              panel.text(arg$x, arg$y, round(arg$z,2))})
 
+print(p)
+title("Correlation of Key Perfomrance Indicators with Net Rating")
+
+efgPlot <- ggplot(gmStats, aes(EFGpct, Nrtg)) + 
+  stat_smooth(method = "lm") + 
+  geom_point()
+print(efgPlot)
+
+orPlot <- ggplot(gmStats, aes(ORpct, Nrtg)) + 
+  stat_smooth(method = "lm") + 
+  geom_point()
+print(orPlot)
+
+toPlot <- ggplot(gmStats, aes(TOpct, Nrtg)) + 
+  stat_smooth(method = "lm") + 
+  geom_point()
+print(toPlot)
+
+fttPlot <- ggplot(gmStats, aes(FTTpct, Nrtg)) + 
+  stat_smooth(method = "lm") + 
+  geom_point()
+print(fttPlot)
+
+par(opar)
 
 # Offensive and Defensive Ratings - by team
 
@@ -247,7 +332,14 @@ for(i in 1:10){
                  )
   names(d) <- sub("^forPlot.", "", names(d))
   corTeam = cor(d)
-  print(levelplot(corTeam, main=paste("Performance heatmap for ",plgName)))
+  
+  p <- levelplot(corTeam, main=paste("Performance correlation matrix for ",plgName), 
+                 panel=function(...) {
+                  arg <- list(...)
+                  panel.levelplot(...)
+                  panel.text(arg$x, arg$y, round(arg$z,2))})
+  
+  print(p)
 }
 
 # Details
@@ -311,12 +403,12 @@ for(i in 1:10){
   abline(h=median(gmStats$opp_TOpct), lty=3)
 
   
-  forCor <- data.frame(forPlot$Nrtg, forPlot$EFGpct,
-                       forPlot$ORpct, forPlot$TOpct, 
-                       forPlot$FTTpct)
-  forCorOpp <- data.frame(forPlot$Nrtg, forPlot$opp_EFGpct,
-                          forPlot$opp_ORpct, forPlot$opp_TOpct, 
-                          forPlot$opp_FTTpct)
+#   forCor <- data.frame(forPlot$Nrtg, forPlot$EFGpct,
+#                        forPlot$ORpct, forPlot$TOpct, 
+#                        forPlot$FTTpct)
+#   forCorOpp <- data.frame(forPlot$Nrtg, forPlot$opp_EFGpct,
+#                           forPlot$opp_ORpct, forPlot$opp_TOpct, 
+#                           forPlot$opp_FTTpct)
   
 }
 
@@ -404,12 +496,13 @@ dev.off()
 
 # print some table to screen
 
-ratingTable <- sprintf("\n\n %-30s %5s %5s %5s %5s \n", 
+ratingTable <- sprintf("\n\n %-30s %5s %5s %5s %5s %5s \n", 
                        "Team",
                        "pts",
                        "opp",
                        "Ortg",
-                       "Drtg")
+                       "Drtg",
+                       "Nrtg")
 
 for(i in 1:10){
   plgID <- teams[i,1]
@@ -417,12 +510,13 @@ for(i in 1:10){
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
   gameNrs = c(1:36)
   
-  row <- sprintf("%-30s %5.1f %5.1f %5.1f %5.1f \n", 
+  row <- sprintf("%-30s %5.1f %5.1f %5.1f %5.1f %5.1f \n", 
                  plgName,
                  mean(forPlot$pts),
                  mean(forPlot$opp_pts),
                  mean(forPlot$Ortg),
-                 mean(forPlot$Drtg))
+                 mean(forPlot$Drtg),
+                 mean(forPlot$Nrtg))
   ratingTable <- paste (ratingTable, row)
 }
 
