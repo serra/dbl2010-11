@@ -152,7 +152,7 @@ opar <- par(no.readonly=TRUE)
 ortgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Ortg)) + 
                   geom_boxplot(aes(fill=plg_ShortName)) +
                   geom_hline(aes(yintercept=median(Ortg)), linetype="dotted") +
-                  opts(title ="Offensive Rating by Team") +
+                  opts(title ="Offensive Rating") +
                   xlab("") + 
                   ylab("Points per 100 possessions")    
 print(ortgByTeamPlot)
@@ -176,7 +176,7 @@ print(nrtgByTeamPlot)
 ptsByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, pts)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(pts)), linetype="dotted") +
-  opts(title ="Points per Game by Team") +
+  opts(title ="Points") +
   xlab("") + 
   ylab("Points")    
 print(ptsByTeamPlot)
@@ -184,7 +184,7 @@ print(ptsByTeamPlot)
 ptsAllowedByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, opp_pts)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(opp_pts)), linetype="dotted") +
-  opts(title ="Points Allowed per Game by Team") +
+  opts(title ="Points Allowed") +
   xlab("") + 
   ylab("Points")    
 print(ptsAllowedByTeamPlot)
@@ -194,47 +194,52 @@ ptsDiffByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, (pts-opp_pts))) +
   geom_hline(aes(yintercept=0), linetype="dotted") +
   geom_hline(aes(yintercept=-5), linetype="dotted") +
   geom_hline(aes(yintercept=5), linetype="dotted") +
-  opts(title ="Points Difference per Game by Team") +
+  opts(title ="Points Difference") +
   xlab("") + 
   ylab("Points") 
                             
 print(ptsDiffByTeamPlot)
 
-stop("intentional stop!")
-
-
-boxplot((pts-opp_pts) ~ plg_ShortName, data=gmStats, 
-        ylab="Net Points")
-abline(h=0, lty=3)
-title("Point Difference per Game by Team")
-mtext("+6", side=2, at=6)
-mtext("-6", side=2, at=-6)
-abline(h=6.0, lty=3)
-abline(h=-6.0, lty=3)
-
 # Performance Indicators - Competition
 
-boxplot(EFGpct ~ plg_ShortName, data=gmStats, 
-        ylab="EFG%",
-        ylim=c(0.2,0.8))
-abline(h=median(gmStats$EFGpct), lty=3)
-title(main="Effective Fieldgoal Percentage (EFG%) per Game by Team")
+efgPctPlot <- ggplot(gmStats, aes(plg_ShortName, EFGpct)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(EFGpct)), linetype="dotted") +
+  opts(title ="Effective Field Goal % (EFG%)") +
+  xlab("") + 
+  ylim(c(0.2,0.8)) +
+  ylab("EFG%")    
+print(efgPctPlot)
 
-boxplot(ORpct ~ plg_ShortName, data=gmStats, 
-        ylab="OR%", ylim=c(0,0.7))
-abline(h=median(gmStats$ORpct), lty=3)
-title(main="Offensive Rebound Percentage (OR%) per Game by team: (OR/(OR+DR_opponent))")
+orPctPlot <- ggplot(gmStats, aes(plg_ShortName, ORpct)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(ORpct)), linetype="dotted") +
+  opts(title ="Offensive Rebound % (OR%)") +
+  xlab("") + 
+  ylim(c(0.0,0.7)) +
+  ylab("OR%")    
+print(orPctPlot)
 
-boxplot(FTTpct ~ plg_ShortName, data=gmStats, 
-        ylab="FTT%", ylim=c(0,0.3))
-abline(h=median(gmStats$FTTpct), lty=3)
-title(main="Number of Free Throw trips per Field Goal Attempt (FTT%) per Game by team: FT trips / (FGA + 3FGA)")
+toPctPlot <- ggplot(gmStats, aes(plg_ShortName, TOpct)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(TOpct)), linetype="dotted") +
+  opts(title ="Turnovers per Possession") +
+  xlab("") + 
+  ylim(c(0.0,0.4)) +
+  ylab("FTT%")    
+print(toPctPlot)
 
-boxplot(TOpct ~ plg_ShortName, data=gmStats, 
-        ylab="TO%", 
-        ylim=c(0,0.4))
-abline(h=median(gmStats$TOpct), lty=3)
-title(main="Turnover Percentage (TO%) per Game by team: (TO/#possessions)")
+fttPctPlot <- ggplot(gmStats, aes(plg_ShortName, FTTpct)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(FTTpct)), linetype="dotted") +
+  opts(title ="Free Throw Trips per Shooting Possession") +
+  xlab("") + 
+  ylim(c(0.0,0.3)) +
+  ylab("FTT%")    
+print(fttPctPlot)
+
+
+stop("intentional stop!")
 
 # correlation of performance indicators
 
