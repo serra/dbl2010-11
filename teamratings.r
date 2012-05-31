@@ -128,12 +128,9 @@ gmStats <- transform(gmStats,
                      FTTpct = FTtrips / (FGA + FG3A + FTtrips)
                      )
 
-
-
-
 ######################################################################
 #
-# Utility function
+# Utility functions
 #
 ######################################################################
 
@@ -249,14 +246,9 @@ d = data.frame(gmStats$Nrtg,
                #gmStats$opp_TOpct, gmStats$opp_FTTpct
               )
 names(d) <- sub("^gmStats.", "", names(d))
-corComp = cor(d)
+corComp <- cor(d)
 
-p <- levelplot(corComp, panel=function(...) {
-                              arg <- list(...)
-                              panel.levelplot(...)
-                              panel.text(arg$x, arg$y, round(arg$z,2))})
-
-print(p)
+print(corComp,2)
 
 corComp.m <- melt(corComp)
 corPlot <- ggplot(corComp.m, 
@@ -268,30 +260,25 @@ corPlot <- ggplot(corComp.m,
 print(corPlot)
 
 
+getPlot <- function(data,xvar,yvar){
+  p <- ggplot(data, aes_string(x = xvar, y = yvar)) + 
+    stat_smooth(method = "lm") + 
+    geom_point(aes(colour=plg_ShortName, shape=plg_ShortName)) + 
+    scale_shape_manual(values=as.numeric(data$plg_ShortName))
+  return(p)
+}
 
-efgPlot <- ggplot(gmStats, aes(EFGpct, Nrtg)) + 
-  stat_smooth(method = "lm") + 
-  geom_point(aes(colour=plg_ShortName))  # consider using shape per team
+efgPlot <- getPlot(gmStats,"EFGpct","Nrtg")
 print(efgPlot)
 
-orPlot <- ggplot(gmStats, aes(ORpct, Nrtg)) + 
-  stat_smooth(method = "lm") + 
-  geom_point(aes(colour=plg_ShortName))
+orPlot <- getPlot(gmStats,"ORpct","Nrtg")
 print(orPlot)
 
-toPlot <- ggplot(gmStats, aes(TOpct, Nrtg)) + 
-  stat_smooth(method = "lm") + 
-  geom_point(aes(colour=plg_ShortName))
+toPlot <- getPlot(gmStats,"TOpct","Nrtg")
 print(toPlot)
 
-fttPlot <- ggplot(gmStats, aes(FTTpct, Nrtg)) + 
-  stat_smooth(method = "lm") + 
-  geom_point(aes(colour=plg_ShortName))
+fttPlot <- getPlot(gmStats,"FTTpct","Nrtg")
 print(fttPlot)
-
-stop("Debugging ...")
-
-
 
 par(opar)
 
