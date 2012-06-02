@@ -260,31 +260,21 @@ corPlot <- ggplot(corComp.m,
 print(corPlot)
 
 
-getPlot <- function(data,xvar,yvar){
-  p <- ggplot(data, aes_string(x = xvar, y = yvar)) + 
-    stat_smooth(method = "lm") + 
-    geom_point(aes(colour=plg_ShortName, shape=plg_ShortName)) + 
-    scale_shape_manual(values=as.numeric(data$plg_ShortName))
-  return(p)
-}
+forPlot <- gmStats[c("wed_ID","Nrtg","EFGpct","ORpct","TOpct","FTTpct",
+                     "plg_ShortName","Home")] 
+forPlot.m <- melt(forPlot, id=c("wed_ID", "plg_ShortName", "Home","Nrtg"))
 
-efgPlot <- getPlot(gmStats,"EFGpct","Nrtg")
-print(efgPlot)
+p <- ggplot(forPlot.m, aes(value, Nrtg)) +
+  geom_point(aes(shape=plg_ShortName, colour=plg_ShortName)) + 
+  scale_shape_manual(values=as.numeric(forPlot.m$plg_ShortName)) +
+  stat_smooth(method="lm") +
+  facet_wrap(~variable,scales="free")
 
-orPlot <- getPlot(gmStats,"ORpct","Nrtg")
-print(orPlot)
-
-toPlot <- getPlot(gmStats,"TOpct","Nrtg")
-print(toPlot)
-
-fttPlot <- getPlot(gmStats,"FTTpct","Nrtg")
-print(fttPlot)
+print(p)
 
 par(opar)
 
 # Offensive and Defensive Ratings - by team
-
-layout(matrix(c(1,2,3,4), 1, 4, byrow=TRUE), widths=c(5,1,1,1))
 
 yLim <- c(60, 170)
 
@@ -292,33 +282,41 @@ for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
-  gameNrs = c(1:36)
   
-  plot(gameNrs, forPlot$Ortg, 
-       type="o", pch=1, lty=1, col="blue", 
-       ylab="Rating",
-       ylim=yLim)
-  lines(gameNrs, forPlot$Drtg, 
-        pch=2, lty=2, col="red", type="o")
-  title(main=paste(plgName, " - Offensive and Defensive Ratings"))
+  forPlot <- forPlot[c("Drtg","Ortg","opp_plg_ShortName","Home")] 
+  forPlot$game = c(1:length(forPlot$Ortg))
+  forPlot <- rename.vars(forPlot, c("opp_plg_ShortName"), c("opponent"))
   
-  abline(h=median(forPlot$Ortg), lty=1, col="blue")
-  abline(h=median(forPlot$Drtg), lty=2, col="red")
-  # plot a line for the league average; 
-  # which is the same for off and def rating:
-  abline(h=median(gmStats$Drtg), lty=3)
+  forPlot.m <- melt(forPlot, id=c("game", "opponent", "Home"))
   
-  legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg", "League Avg"),
-         lty=c(1, 2, 3), col=c("blue", "red", "black"))
+  p <- ggplot(forPlot.m, aes(x=game, y=value, colour=variable)) +
+    stat_smooth(aes(fill = variable), size=1) +
+    geom_point(aes(shape=opponent)) + 
+    scale_shape_manual(values=as.numeric(forPlot.m$opponent)) +
+    opts(title=plgName)
   
-  boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
-  abline(h=median(gmStats$Ortg), lty=3)
-  boxplot(forPlot$Drtg, data=forPlot, xlab="Drtg", col="red", ylim=yLim)
-  abline(h=median(gmStats$Drtg), lty=3)
-  boxplot(forPlot$Nrtg, data=forPlot, xlab="Nrtg", ylim=c(-70,70))
-  abline(h=median(gmStats$Nrtg), lty=3)
+  print(p)
+    
+#   abline(h=median(forPlot$Ortg), lty=1, col="blue")
+#   abline(h=median(forPlot$Drtg), lty=2, col="red")
+#   # plot a line for the league average; 
+#   # which is the same for off and def rating:
+#   abline(h=median(gmStats$Drtg), lty=3)
+#   
+#   legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg", "League Avg"),
+#          lty=c(1, 2, 3), col=c("blue", "red", "black"))
+#   
+#   boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
+#   abline(h=median(gmStats$Ortg), lty=3)
+#   boxplot(forPlot$Drtg, data=forPlot, xlab="Drtg", col="red", ylim=yLim)
+#   abline(h=median(gmStats$Drtg), lty=3)
+#   boxplot(forPlot$Nrtg, data=forPlot, xlab="Nrtg", ylim=c(-70,70))
+#   abline(h=median(gmStats$Nrtg), lty=3)
   
 }
+
+stop(">>> MY STOP <<<")
+
 
 par(opar)
 
