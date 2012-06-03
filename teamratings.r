@@ -134,7 +134,32 @@ gmStats <- transform(gmStats,
 #
 ######################################################################
 
-
+multiplot <- function(..., plotlist=NULL, cols) {
+  require(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # Make the panel
+  plotCols = cols                          # Number of columns of plots
+  plotRows = ceiling(numPlots/plotCols) # Number of rows needed, calculated from # of cols
+  
+  # Set up the page
+  grid.newpage()
+  pushViewport(viewport(layout = grid.layout(plotRows, plotCols)))
+  vplayout <- function(x, y)
+    viewport(layout.pos.row = x, layout.pos.col = y)
+  
+  # Make each plot, in the correct location
+  for (i in 1:numPlots) {
+    curRow = ceiling(i/plotCols)
+    curCol = (i-1) %% plotCols + 1
+    print(plots[[i]], vp = vplayout(curRow, curCol ))
+  }
+  
+}
 
 ######################################################################
 #
@@ -142,8 +167,7 @@ gmStats <- transform(gmStats,
 #
 ######################################################################
 
-# pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
-opar <- par(no.readonly=TRUE)
+pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
 
 # Offensive and Defensive Ratings - Competition
 ortgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Ortg)) + 
@@ -251,14 +275,11 @@ corComp <- cor(d)
 print(corComp,2)
 
 corComp.m <- melt(corComp)
-corPlot <- ggplot(corComp.m, 
-                  aes(Var1, 
-                      Var2, 
-                      fill = value)) + 
-                        geom_tile() + 
-                        scale_fill_gradient2(low = "red",  high = "blue")
+corPlot <- ggplot(corComp.m, aes(Var1, Var2, fill = value)) + 
+            geom_tile() + 
+            scale_fill_gradient2(low = "red",  high = "blue") +
+            opts(title="Correlation matrix for complete competition")
 print(corPlot)
-
 
 forPlot <- gmStats[c("wed_ID","Nrtg","EFGpct","ORpct","TOpct","FTTpct",
                      "plg_ShortName","Home")] 
@@ -272,10 +293,9 @@ p <- ggplot(forPlot.m, aes(value, Nrtg)) +
 
 print(p)
 
-par(opar)
-
 # Offensive and Defensive Ratings - by team
 
+medianRatingCompetion <- median(gmStats$Ortg)
 yLim <- c(60, 170)
 
 for(i in 1:10){
@@ -289,36 +309,25 @@ for(i in 1:10){
   
   forPlot.m <- melt(forPlot, id=c("game", "opponent", "Home"))
   
-  p <- ggplot(forPlot.m, aes(x=game, y=value, colour=variable)) +
-    stat_smooth(aes(fill = variable), size=1) +
-    geom_point(aes(shape=opponent)) + 
-    scale_shape_manual(values=as.numeric(forPlot.m$opponent)) +
-    opts(title=plgName)
+  p <- ggplot(forPlot.m, aes(x=game, y=value)) +
+    opts(title=plgName)  +
+    geom_hline(yintercept=medianRatingCompetion, linetype="dotted") +
+    ylim(yLim)
+
+  ptrend <- p +
+    stat_smooth(aes(fill = variable, colour=variable), size=1) +
+    geom_point(aes(shape=opponent, colour=variable)) + 
+    scale_shape_manual(values=as.numeric(forPlot.m$opponent)) 
   
-  print(p)
-    
-#   abline(h=median(forPlot$Ortg), lty=1, col="blue")
-#   abline(h=median(forPlot$Drtg), lty=2, col="red")
-#   # plot a line for the league average; 
-#   # which is the same for off and def rating:
-#   abline(h=median(gmStats$Drtg), lty=3)
-#   
-#   legend("topleft", inset=.05, title="Legend", c("Ortg","Drtg", "League Avg"),
-#          lty=c(1, 2, 3), col=c("blue", "red", "black"))
-#   
-#   boxplot(forPlot$Ortg, data=forPlot, xlab="Ortg", col="blue", ylim=yLim )
-#   abline(h=median(gmStats$Ortg), lty=3)
-#   boxplot(forPlot$Drtg, data=forPlot, xlab="Drtg", col="red", ylim=yLim)
-#   abline(h=median(gmStats$Drtg), lty=3)
-#   boxplot(forPlot$Nrtg, data=forPlot, xlab="Nrtg", ylim=c(-70,70))
-#   abline(h=median(gmStats$Nrtg), lty=3)
+  pboxplot <- p + 
+    geom_boxplot(aes(x=variable, fill=variable))
+
+  grid.newpage()
+  pushViewport(viewport(layout = grid.layout(1, 4)))   
+  print(ptrend, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:3))         
+  print(pboxplot, vp = viewport(layout.pos.row = 1, layout.pos.col = 4))
   
 }
-
-stop(">>> MY STOP <<<")
-
-
-par(opar)
 
 # battle of ratio's per team
 
@@ -345,8 +354,6 @@ for(i in 1:10){
 }
 
 # Details
-
-layout(matrix(c(1,2,3,4,5,6), 2, 3, byrow=TRUE), widths=c(5,1,1))
 
 yLim <- c(0, 0.8)
 
@@ -413,8 +420,6 @@ for(i in 1:10){
 #                           forPlot$opp_FTTpct)
   
 }
-
-par(opar)
 
 # Game pace
 
@@ -492,9 +497,9 @@ for(i in 1:10){
   
 }
 
-par(opar)
-
 dev.off()
+
+
 
 # print some table to screen
 
