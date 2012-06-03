@@ -134,32 +134,26 @@ gmStats <- transform(gmStats,
 #
 ######################################################################
 
-multiplot <- function(..., plotlist=NULL, cols) {
-  require(grid)
+PageWithTrendAndBoxPlot <- function (df, title, medianForComp, yLim) {
+  p <- ggplot(df, aes(x=game, y=value)) +
+    opts(title=title)  +
+    geom_hline(yintercept=medianForComp, linetype="dotted") +
+    ylim(yLim)
   
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
+  ptrend <- p +
+    stat_smooth(aes(fill = variable, colour=variable), size=1) +
+    geom_point(aes(shape=opponent, colour=variable)) + 
+    scale_shape_manual(values=as.numeric(df$opponent)) 
   
-  numPlots = length(plots)
+  pboxplot <- p + 
+    geom_boxplot(aes(x=variable, fill=variable))
   
-  # Make the panel
-  plotCols = cols                          # Number of columns of plots
-  plotRows = ceiling(numPlots/plotCols) # Number of rows needed, calculated from # of cols
-  
-  # Set up the page
   grid.newpage()
-  pushViewport(viewport(layout = grid.layout(plotRows, plotCols)))
-  vplayout <- function(x, y)
-    viewport(layout.pos.row = x, layout.pos.col = y)
-  
-  # Make each plot, in the correct location
-  for (i in 1:numPlots) {
-    curRow = ceiling(i/plotCols)
-    curCol = (i-1) %% plotCols + 1
-    print(plots[[i]], vp = vplayout(curRow, curCol ))
-  }
-  
+  pushViewport(viewport(layout = grid.layout(1, 4)))   
+  print(ptrend, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:3))         
+  print(pboxplot, vp = viewport(layout.pos.row = 1, layout.pos.col = 4))
 }
+
 
 ######################################################################
 #
@@ -220,6 +214,15 @@ ptsDiffByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, (pts-opp_pts))) +
   ylab("Points") 
                             
 print(ptsDiffByTeamPlot)
+
+# Game pace
+p <- ggplot(gmStats, aes(plg_ShortName, avgps)) + 
+  geom_boxplot(aes(fill=plg_ShortName)) +
+  geom_hline(aes(yintercept=median(avgps)), linetype="dotted") +
+  opts(title ="Game Pace") +
+  xlab("") + 
+  ylab("#Possessions")    
+print(p)
 
 # Performance Indicators - Competition
 
@@ -309,23 +312,7 @@ for(i in 1:10){
   
   forPlot.m <- melt(forPlot, id=c("game", "opponent", "Home"))
   
-  p <- ggplot(forPlot.m, aes(x=game, y=value)) +
-    opts(title=plgName)  +
-    geom_hline(yintercept=medianRatingCompetion, linetype="dotted") +
-    ylim(yLim)
-
-  ptrend <- p +
-    stat_smooth(aes(fill = variable, colour=variable), size=1) +
-    geom_point(aes(shape=opponent, colour=variable)) + 
-    scale_shape_manual(values=as.numeric(forPlot.m$opponent)) 
-  
-  pboxplot <- p + 
-    geom_boxplot(aes(x=variable, fill=variable))
-
-  grid.newpage()
-  pushViewport(viewport(layout = grid.layout(1, 4)))   
-  print(ptrend, vp = viewport(layout.pos.row = 1, layout.pos.col = 1:3))         
-  print(pboxplot, vp = viewport(layout.pos.row = 1, layout.pos.col = 4))
+  PageWithTrendAndBoxPlot(forPlot.m, plgName, medianRatingCompetion, yLim)
   
 }
 
@@ -361,57 +348,22 @@ for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
   forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
-  gameNrs = c(1:36)
+    
+  forPlot <- forPlot[c("opp_plg_ShortName","Home",
+                       "EFGpct","ORpct","TOpct","FTTpct",
+                       "opp_EFGpct","opp_ORpct","opp_TOpct","opp_FTTpct")] 
+  forPlot$game = c(1:length(forPlot$EFGpct))
+  forPlot <- rename.vars(forPlot, c("opp_plg_ShortName"), c("opponent"))
   
-  plot(gameNrs, forPlot$EFGpct, 
-       type="o", pch=1, lty=1, col="blue", 
-       xlab=plgName, ylab="Ratio",
-       ylim=yLim)
-  lines(gameNrs, forPlot$opp_EFGpct, 
-        pch=2, lty=1, col="red", type="o")
-  
-  boxplot(forPlot$EFGpct, data=forPlot, xlab="EFG%", col="blue", ylim=yLim )
-  abline(h=median(gmStats$EFGpct), lty=3)
-  boxplot(forPlot$opp_EFGpct, data=forPlot, xlab="Opp EFG%", col="red", ylim=yLim)
-  abline(h=median(gmStats$EFGpct), lty=3)
-  
-  plot(gameNrs, forPlot$FTTpct, 
-       type="o", pch=1, lty=1, col="blue", 
-       xlab=plgName, ylab="Ratio",
-       ylim=yLim)
-  lines(gameNrs, forPlot$opp_FTTpct, 
-        pch=2, lty=1, col="red", type="o")
-  
-  boxplot(forPlot$FTTpct, data=forPlot, xlab="FT trip %", col="blue", ylim=yLim )
-  abline(h=median(gmStats$FTTpct), lty=3)
-  boxplot(forPlot$opp_FTTpct, data=forPlot, xlab="Opp FT trip %", col="red", ylim=yLim)
-  abline(h=median(gmStats$opp_FTTpct), lty=3)
-  
-  plot(gameNrs, forPlot$ORpct, 
-       type="o", pch=1, lty=1, col="blue", 
-       xlab=plgName, ylab="OR Ratio",
-       ylim=yLim)
-  lines(gameNrs, forPlot$opp_ORpct, 
-        pch=2, lty=1, col="red", type="o")
-  
-  boxplot(forPlot$ORpct, data=forPlot, xlab="OR%", col="blue", ylim=yLim )
-  abline(h=median(gmStats$ORpct), lty=3)
-  boxplot(forPlot$opp_ORpct, data=forPlot, xlab="Opp OR%", col="red", ylim=yLim)
-  abline(h=median(gmStats$opp_ORpct), lty=3)
-  
-  plot(gameNrs, forPlot$TOpct, 
-       type="o", pch=1, lty=1, col="blue", 
-       xlab=plgName, ylab="TO%",
-       ylim=yLim)
-  lines(gameNrs, forPlot$opp_TOpct, 
-        pch=2, lty=1, col="red", type="o")
-  
-  boxplot(forPlot$TOpct, data=forPlot, xlab="TO%", col="blue", ylim=yLim )
-  abline(h=median(gmStats$TOpct), lty=3)
-  boxplot(forPlot$opp_TOpct, data=forPlot, xlab="Opp TO %", col="red", ylim=yLim)
-  abline(h=median(gmStats$opp_TOpct), lty=3)
+  PageWithTrendAndBoxPlot(melt(forPlot, measure=c("EFGpct", "opp_EFGpct")), 
+                          plgName, median(gmStats$EFGpct), yLim)
+  PageWithTrendAndBoxPlot(melt(forPlot, measure=c("ORpct", "opp_ORpct")), 
+                          plgName, median(gmStats$ORpct), yLim)
+  PageWithTrendAndBoxPlot(melt(forPlot, measure=c("TOpct", "opp_TOpct")), 
+                          plgName, median(gmStats$TOpct), yLim)
+  PageWithTrendAndBoxPlot(melt(forPlot, measure=c("FTTpct", "opp_FTTpct")), 
+                          plgName, median(gmStats$FTTpct), yLim)
 
-  
 #   forCor <- data.frame(forPlot$Nrtg, forPlot$EFGpct,
 #                        forPlot$ORpct, forPlot$TOpct, 
 #                        forPlot$FTTpct)
@@ -420,13 +372,6 @@ for(i in 1:10){
 #                           forPlot$opp_FTTpct)
   
 }
-
-# Game pace
-
-boxplot(avgps ~ plg_ShortName, data=gmStats, 
-        ylab="#Possessions")
-abline(h=median(gmStats$avgps), lty=3)
-title(main="Game Pace by team")
 
 # Shooting plays (2/3/FT)
 
