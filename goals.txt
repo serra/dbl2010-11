@@ -12,18 +12,18 @@ Goals
  * turnover percentage
  * fta/fga
 
-[ ] Four performance indicators, shown in side-by-side box plots
+[x] Four performance indicators, shown in side-by-side box plots
 
-[ ] Shot selection for all teams
+[x] Shot selection for all teams
 
  * 2s / 3s as box plot for season
 
-[ ] Correlation between the four performance indicators and Nrtg
+[x] Correlation between the four performance indicators and Nrtg
 
  * for competions
  * per team
 
-[ ] Summary of indicators for the competition
+[x] Summary of indicators for the competition
  
 [ ] Field- and floor percentages for all teams
 
@@ -35,12 +35,4 @@ Goals
 
 [ ] Verifiaction of estimaters (e.g. 0.4 in the possesion calculation)
 
-
-Todo
-====
-
-[ ] Clarify all plots
-
-    [ ] Add legend
-    [ ] Add explanation
 
