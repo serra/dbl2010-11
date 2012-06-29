@@ -3,6 +3,8 @@ library(reshape2)
 library(lattice)
 library(gplots)
 
+# assumes that the gmStats data frame is initialized
+
 ######################################################################
 #
 # Utility functions

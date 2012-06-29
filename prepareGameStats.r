@@ -123,8 +123,32 @@ gmStats <- transform(gmStats,
                      opp_FTTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
                      )
 
+# shooting distribution
 gmStats <- transform(gmStats,
                      FGApct = FGA / (FGA + FG3A + FTtrips),
                      FGA3pct = FG3A / (FGA + FG3A + FTtrips),
                      FTTpct = FTtrips / (FGA + FG3A + FTtrips)
                      )
+
+# shooting percentages
+gmStats <- transform(gmStats,
+                     FG2pct = FGM / FGA,
+                     FG3pct = FG3M/ FG3A,
+                     FTpct = FTM / FTA
+                     )
+
+# point by category
+gmStats <- transform(gmStats,
+                     FG2pts = FGM*2,
+                     FG3pts = FG3M*3,
+                     FTpts = FTM
+                     )
+
+# point contributions
+gmStats <- transform(gmStats,
+                     ContrFG2pts = FG2pts/pts,
+                     ContrFG3pts = FG3pts/pts,
+                     ContrFTpts = FTpts/pts
+                     )
+
+
