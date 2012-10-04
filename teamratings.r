@@ -3,7 +3,7 @@ library(reshape2)
 library(lattice)
 library(gplots)
 
-# assumes that the gmStats data frame is initialized
+# assumes that the teamStats data frame is initialized
 
 ######################################################################
 #
@@ -40,7 +40,7 @@ PageWithTrendAndBoxPlot <- function (df, title, medianForComp, yLim) {
 pdf("output/dlb2010-11regseason.pdf", paper="a4r", width=12)
 
 # Offensive and Defensive Ratings - Competition
-ortgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Ortg)) + 
+ortgByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, Ortg)) + 
                   geom_boxplot(aes(fill=plg_ShortName)) +
                   geom_hline(aes(yintercept=median(Ortg)), linetype="dotted") +
                   opts(title ="Offensive Rating") +
@@ -48,7 +48,7 @@ ortgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Ortg)) +
                   ylab("Points per 100 possessions")    
 print(ortgByTeamPlot)
 
-drtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Drtg)) + 
+drtgByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, Drtg)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(Drtg)), linetype="dotted") +
   opts(title ="Defensive Rating by Team") +
@@ -56,7 +56,7 @@ drtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Drtg)) +
   ylab("Points per 100 possessions")    
 print(drtgByTeamPlot)
 
-nrtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Nrtg)) + 
+nrtgByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, Nrtg)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(Nrtg)), linetype="dotted") +
   opts(title ="Net Rating by Team") +
@@ -64,7 +64,7 @@ nrtgByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, Nrtg)) +
   ylab("Points Difference per 100 possessions")    
 print(nrtgByTeamPlot)
 
-ptsByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, pts)) + 
+ptsByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, pts)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(pts)), linetype="dotted") +
   opts(title ="Points") +
@@ -72,7 +72,7 @@ ptsByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, pts)) +
   ylab("Points")    
 print(ptsByTeamPlot)
 
-ptsAllowedByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, opp_pts)) + 
+ptsAllowedByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, opp_pts)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(opp_pts)), linetype="dotted") +
   opts(title ="Points Allowed") +
@@ -80,7 +80,7 @@ ptsAllowedByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, opp_pts)) +
   ylab("Points")    
 print(ptsAllowedByTeamPlot)
 
-ptsDiffByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, (pts-opp_pts))) + 
+ptsDiffByTeamPlot <- ggplot(teamStats, aes(plg_ShortName, (pts-opp_pts))) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=0), linetype="dotted") +
   geom_hline(aes(yintercept=-5), linetype="dotted") +
@@ -92,7 +92,7 @@ ptsDiffByTeamPlot <- ggplot(gmStats, aes(plg_ShortName, (pts-opp_pts))) +
 print(ptsDiffByTeamPlot)
 
 # Game pace
-p <- ggplot(gmStats, aes(plg_ShortName, avgps)) + 
+p <- ggplot(teamStats, aes(plg_ShortName, avgps)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(avgps)), linetype="dotted") +
   opts(title ="Game Pace") +
@@ -102,7 +102,7 @@ print(p)
 
 # Performance Indicators - Competition
 
-efgPctPlot <- ggplot(gmStats, aes(plg_ShortName, EFGpct)) + 
+efgPctPlot <- ggplot(teamStats, aes(plg_ShortName, EFGpct)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(EFGpct)), linetype="dotted") +
   opts(title ="Effective Field Goal % (EFG%)") +
@@ -111,7 +111,7 @@ efgPctPlot <- ggplot(gmStats, aes(plg_ShortName, EFGpct)) +
   ylab("EFG%")    
 print(efgPctPlot)
 
-orPctPlot <- ggplot(gmStats, aes(plg_ShortName, ORpct)) + 
+orPctPlot <- ggplot(teamStats, aes(plg_ShortName, ORpct)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(ORpct)), linetype="dotted") +
   opts(title ="Offensive Rebound % (OR%)") +
@@ -120,7 +120,7 @@ orPctPlot <- ggplot(gmStats, aes(plg_ShortName, ORpct)) +
   ylab("OR%")    
 print(orPctPlot)
 
-toPctPlot <- ggplot(gmStats, aes(plg_ShortName, TOpct)) + 
+toPctPlot <- ggplot(teamStats, aes(plg_ShortName, TOpct)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(TOpct)), linetype="dotted") +
   opts(title ="Turnovers per Possession") +
@@ -129,7 +129,7 @@ toPctPlot <- ggplot(gmStats, aes(plg_ShortName, TOpct)) +
   ylab("FTT%")    
 print(toPctPlot)
 
-fttPctPlot <- ggplot(gmStats, aes(plg_ShortName, FTTpct)) + 
+fttPctPlot <- ggplot(teamStats, aes(plg_ShortName, FTTpct)) + 
   geom_boxplot(aes(fill=plg_ShortName)) +
   geom_hline(aes(yintercept=median(FTTpct)), linetype="dotted") +
   opts(title ="Free Throw Trips per Shooting Possession") +
@@ -140,15 +140,15 @@ print(fttPctPlot)
 
 # correlation of performance indicators
 
-d = data.frame(gmStats$Nrtg, 
-              gmStats$EFGpct, gmStats$ORpct, 
-              gmStats$TOpct, gmStats$FTTpct
+d = data.frame(teamStats$Nrtg, 
+              teamStats$EFGpct, teamStats$ORpct, 
+              teamStats$TOpct, teamStats$FTTpct
                # when evaluating the competion, 
                # it does not make sense to include opponent stats
-               #gmStats$opp_EFGpct, gmStats$opp_ORpct, 
-               #gmStats$opp_TOpct, gmStats$opp_FTTpct
+               #teamStats$opp_EFGpct, teamStats$opp_ORpct, 
+               #teamStats$opp_TOpct, teamStats$opp_FTTpct
               )
-names(d) <- sub("^gmStats.", "", names(d))
+names(d) <- sub("^teamStats.", "", names(d))
 corComp <- cor(d)
 
 print(corComp,2)
@@ -160,7 +160,7 @@ corPlot <- ggplot(corComp.m, aes(Var1, Var2, fill = value)) +
             opts(title="Correlation matrix for complete competition")
 print(corPlot)
 
-forPlot <- gmStats[c("wed_ID","Nrtg","EFGpct","ORpct","TOpct","FTTpct",
+forPlot <- teamStats[c("wed_ID","Nrtg","EFGpct","ORpct","TOpct","FTTpct",
                      "plg_ShortName","Home")] 
 forPlot.m <- melt(forPlot, id=c("wed_ID", "plg_ShortName", "Home","Nrtg"))
 
@@ -174,13 +174,13 @@ print(p)
 
 # Offensive and Defensive Ratings - by team
 
-medianRatingCompetion <- median(gmStats$Ortg)
+medianRatingCompetion <- median(teamStats$Ortg)
 yLim <- c(60, 170)
 
 for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
-  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
   
   forPlot <- forPlot[c("Drtg","Ortg","opp_plg_ShortName","Home")] 
   forPlot$game = c(1:length(forPlot$Ortg))
@@ -197,7 +197,7 @@ for(i in 1:10){
 for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
-  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
   d = data.frame(forPlot$Nrtg, forPlot$Ortg, forPlot$Drtg,
                  forPlot$EFGpct, forPlot$ORpct, 
                  forPlot$TOpct, forPlot$FTTpct,
@@ -223,7 +223,7 @@ yLim <- c(0, 0.8)
 for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
-  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
     
   forPlot <- forPlot[c("opp_plg_ShortName","Home",
                        "EFGpct","ORpct","TOpct","FTTpct",
@@ -232,13 +232,13 @@ for(i in 1:10){
   forPlot <- rename.vars(forPlot, c("opp_plg_ShortName"), c("opponent"))
   
   PageWithTrendAndBoxPlot(melt(forPlot, measure=c("EFGpct", "opp_EFGpct")), 
-                          plgName, median(gmStats$EFGpct), yLim)
+                          plgName, median(teamStats$EFGpct), yLim)
   PageWithTrendAndBoxPlot(melt(forPlot, measure=c("ORpct", "opp_ORpct")), 
-                          plgName, median(gmStats$ORpct), yLim)
+                          plgName, median(teamStats$ORpct), yLim)
   PageWithTrendAndBoxPlot(melt(forPlot, measure=c("TOpct", "opp_TOpct")), 
-                          plgName, median(gmStats$TOpct), yLim)
+                          plgName, median(teamStats$TOpct), yLim)
   PageWithTrendAndBoxPlot(melt(forPlot, measure=c("FTTpct", "opp_FTTpct")), 
-                          plgName, median(gmStats$FTTpct), yLim)
+                          plgName, median(teamStats$FTTpct), yLim)
 
 #   forCor <- data.frame(forPlot$Nrtg, forPlot$EFGpct,
 #                        forPlot$ORpct, forPlot$TOpct, 
@@ -258,7 +258,7 @@ yLim <- c(0, 60)
 for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
-  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
   gameNrs <- c(1:36)
   
   # absolute
@@ -282,17 +282,17 @@ for(i in 1:10){
   boxplot((forPlot$FGApct), data=forPlot, 
           xlab="2FGA", col="blue", 
           ylim=c(0.0, 1.0) )
-  abline(h=median(gmStats$FGApct), lty=3)
+  abline(h=median(teamStats$FGApct), lty=3)
   
   boxplot(forPlot$FGA3pct, data=forPlot, 
           xlab="3FGA", col="purple",
           ylim=c(0.0, 1.0) )
-  abline(h=median(gmStats$FGA3pct), lty=3)
+  abline(h=median(teamStats$FGA3pct), lty=3)
   
   boxplot(forPlot$FTTpct, data=forPlot, 
           xlab="FT trips", col="red",
           ylim=c(0.0, 1.0) )
-  abline(h=median(gmStats$FTTpct), lty=3)
+  abline(h=median(teamStats$FTTpct), lty=3)
   
   # relative
   plot(gameNrs, forPlot$FGApct, 
@@ -335,7 +335,7 @@ ratingTable <- sprintf("\n\n %-30s %5s %5s %5s %5s %5s \n",
 for(i in 1:10){
   plgID <- teams[i,1]
   plgName <- teams[i,2]
-  forPlot <- gmStats[which(gmStats$plg_ID==plgID),]
+  forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
   gameNrs = c(1:36)
   
   row <- sprintf("%-30s %5.1f %5.1f %5.1f %5.1f %5.1f \n", 
