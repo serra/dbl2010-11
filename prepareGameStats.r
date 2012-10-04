@@ -40,7 +40,8 @@ sts <- transform(sts, spl_ID = paste(plg_ID,
 psData <- data.frame(sts$wed_ID, sts$plg_ID, sts$wed_UitPloeg, sts$wed_ThuisPloeg, 
                      sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  
                      sts$scu_3PA, 
-                     sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers)
+                     sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers,
+                     sts$scu_Minuten)
 
 # prettify
 names(psData) <- sub("^sts.", "", names(psData))        
@@ -78,7 +79,7 @@ stsUit[missingCols] <- 0
 psData <- rbind(psData, stsThuis, stsUit)
 
 # aggregate by game and team
-agg <- aggregate(psData[5:13] , by=list(wed_ID=psData$wed_ID, plg_ID=psData$plg_ID, wed_UitPloeg=psData$wed_UitPloeg, wed_ThuisPloeg=psData$wed_ThuisPloeg), FUN=sum)
+agg <- aggregate(psData[5:14] , by=list(wed_ID=psData$wed_ID, plg_ID=psData$plg_ID, wed_UitPloeg=psData$wed_UitPloeg, wed_ThuisPloeg=psData$wed_ThuisPloeg), FUN=sum)
 
 # add team name
 agg <- sqldf("select agg.*, teams.plg_Name from agg inner join teams on agg.plg_ID=teams.plg_ID")
@@ -104,6 +105,14 @@ nrCols <- dim(teamStats)[2]/2
 oppCols <- paste("opp", names(teamStats)[nrCols+1:nrCols], sep="_")
 names(teamStats)[nrCols+1:nrCols] <- oppCols
 
+# sanity checks ...
+
+minutesNotEqual <- sqldf(paste("select wed_ID, plg_name, wed_ThuisPloeg, wed_UitPloeg, Minuten, opp_minuten",
+                               "from teamStats ",
+                               "where Minuten <> opp_minuten"))
+
+if(nrow(minutesNotEqual) > 0) 
+  warning("There are games with unequal minutes per team; see minutesNotEqual dataframe")
 
 #######################################################################
 #
@@ -182,7 +191,7 @@ teamStats <- transform(teamStats,
 #
 #######################################################################
 
-playerStats <- data.frame(sts$wed_ID, sts$plg_ID, 
+playerStats <- data.frame(sts$wed_ID, sts$plg_ID, sts$scu_Minuten,
                          sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  
                          sts$scu_3PA, 
                          sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers,
@@ -215,13 +224,11 @@ playerStats <- transform(playerStats,
                         spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
                         )
 
-
 #########
 #
 # output
 #
 #########
-
 
 write.csv2(teamStats, advancedTeamsStatsOutputFile)
 write.csv2(teamStats, advancedPlayerStatsOutputFile)
