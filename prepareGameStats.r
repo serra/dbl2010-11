@@ -18,6 +18,8 @@ ftaFactor <- 0.4     # Estimate percentage of free throws that end a possession.
                      # but nowadays values of 0.44 (NBA) and 0.47 (EuroLeague)
                      # are used. To be investigated.
 
+secondChanceFactor <- 1.07
+
 ################################
 #
 # Prepare teamStats data frame
@@ -25,8 +27,8 @@ ftaFactor <- 0.4     # Estimate percentage of free throws that end a possession.
 ################################
 
 inputFile <- "./sources/heren_2010_2011.csv"
-advancedTeamsStatsOutputFile <- "./sources/heren_2010_2011_advanced_team_stats.csv"
-advancedPlayerStatsOutputFile <- "./sources/heren_2010_2011_advanced_player_stats.csv"
+advancedTeamsStatsOutputFile <- "./output/heren_2010_2011_advanced_team_stats.csv"
+advancedPlayerStatsOutputFile <- "./output/heren_2010_2011_advanced_player_stats.csv"
 
 
 
@@ -111,9 +113,11 @@ minutesNotEqual <- sqldf(paste("select wed_ID, plg_name, wed_ThuisPloeg, wed_Uit
                                "from teamStats ",
                                "where Minuten <> opp_minuten"))
 
-if(nrow(minutesNotEqual) > 0) 
-  warning("There are games with unequal minutes per team; see minutesNotEqual dataframe")
-
+nrGamesWithUnEqualMinutes <- (nrow(minutesNotEqual) / 2)
+if(nrGamesWithUnEqualMinutes > 0) {
+  warning(sprintf("%i game(s) with unequal minutes per team:", nrGamesWithUnEqualMinutes))
+  print(minutesNotEqual)
+}
 #######################################################################
 #
 # Calculate performance indicators and add them to the teamStats frame
@@ -127,8 +131,8 @@ teamStats <- transform(teamStats,
 teamStats <- transform(teamStats, 
                      pts = FTM + 2*FGM + 3*FG3M,
                      opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
-                     ps = TO + FTtrips + (FGA + FG3A) - 1.07 * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
-                     opp_ps = opp_TO + ftaFactor*opp_FTA + (opp_FGA + opp_FG3A) - 1.07 * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
+                     ps = TO + FTtrips + (FGA + FG3A) - secondChanceFactor * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
+                     opp_ps = opp_TO + ftaFactor*opp_FTA + (opp_FGA + opp_FG3A) - secondChanceFactor * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
                      )
 
 teamStats <- transform(teamStats,
