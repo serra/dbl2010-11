@@ -228,6 +228,14 @@ playerStats <- transform(playerStats,
                         spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
                         )
 
+# usages:
+# ((FGA + 0.47 * FTA + TOV) * (Tm MP / 5)) 
+#  / (MP * (Tm FGA + 0.47 * Tm FTA + Tm TOV))
+playerStats <- transform(playerStats,
+                         spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) * (Minuten / 5) 
+                                      / (spl_Minuten * (FGA + ftaFactor * FTA + TO))
+                         )
+
 #########
 #
 # output
@@ -235,4 +243,4 @@ playerStats <- transform(playerStats,
 #########
 
 write.csv2(teamStats, advancedTeamsStatsOutputFile)
-write.csv2(teamStats, advancedPlayerStatsOutputFile)
+write.csv2(playerStats, advancedPlayerStatsOutputFile)
