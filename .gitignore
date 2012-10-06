@@ -1,6 +1,7 @@
 # No idea yet what to put in .gitignore yet for r projects ... we'll see :)
  
 .[Rr][Dd]ata
+.Rhistory
 
 *.pdf
 
