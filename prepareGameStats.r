@@ -23,20 +23,43 @@ secondChanceFactor <- 1.07
 #
 ############
 
-GetCompetitionIds <- function(allStats) {
-  #seasons <- sqldf("select wed_ID from allStats group by wed_ID")
-  return(c(421,627))
+substrRight <- function(x, n){
+  substr(x, nchar(x)-n+1, nchar(x))
+}
+
+GetCompetitions <- function(allStats) {
+  comps <- sqldf( paste("select cmp_ID, min(wed_Datum) as StartDate,",
+                            " count(*) as NrGameLines",
+                          "from allStats group by cmp_ID",
+                        "order by min(wed_Datum)"))
+  
+  
+  startYear <- as.numeric(substrRight(comps[1,"StartDate"],4))
+  comps <- transform(comps,
+                       Desc = paste("heren",startYear,startYear+1,sep="_"))
+  
+  compDescriptions <- c("regseas","playoffs")
+  
+  comps$Desc <- paste(comps$Desc,c("regseas","playoffs"),sep="_")
+  
+  return(comps)
 }
 
 CreateAdvancedStatsFiles <- function (fileName) {
   sts <- read.csv2(fileName)
-  comps <- GetCompetitionIds(sts)
+  sts <- transform(sts, spl_ID = paste(plg_ID,  
+                                       spl_Voornaam, 
+                                       spl_tussen,
+                                       spl_Achternaam))
+  comps <- GetCompetitions(sts)
   
-  stsRegSeason <- sts[which(sts$cmp_ID==comps[1]),]
-  stsPlayOffs <- sts[which(sts$cmp_ID==comps[2]),]
+  message(sprintf("Analyzing %i competitions:", nrow(comps)))
+  print(comps)
   
-  CreateAdvancedStatsFilesForCompetition(stsRegSeason, "heren_2010_2011_regseas")
-  CreateAdvancedStatsFilesForCompetition(stsPlayOffs, "heren_2010_2011_playoffs")
+  for(i in 1:2) {
+    CreateAdvancedStatsFilesForCompetition(sts[which(sts$cmp_ID==comps[i,"cmp_ID"]),], 
+                                           comps[i,"Desc"])
+  }
 }
 
 CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
@@ -49,12 +72,17 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
     
   advancedTeamsStatsOutputFile <- paste("./output/", compdesc, "_advanced_team_stats.csv", sep="")
   advancedPlayerStatsOutputFile <- paste("./output/", compdesc, "_advanced_player_stats.csv", sep="")
+      
+  teamStats <- GetAdvancedTeamStats(sts) 
+  playerStats <- GetAdvancedPlayerStats(sts, teamStats)
   
-  sts <- transform(sts, spl_ID = paste(plg_ID,  
-                                        spl_Voornaam, 
-                                        spl_tussen,
-                                        spl_Achternaam))
+  write.csv2(teamStats, advancedTeamsStatsOutputFile)
+  write.csv2(playerStats, advancedPlayerStatsOutputFile)
   
+  return(c(advancedTeamsStatsOutputFile,advancedPlayerStatsOutputFile))
+}
+
+GetAdvancedTeamStats <- function(sts) {
   psData <- data.frame(sts$wed_ID, sts$plg_ID, sts$wed_UitPloeg, sts$wed_ThuisPloeg, 
                        sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  
                        sts$scu_3PA, 
@@ -114,7 +142,7 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
                       ")",
                       "",
                       "order by wed_ID"
-                      )
+  )
   
   teamStats <- sqldf(sqlGameLine) 
   
@@ -141,54 +169,54 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   #######################################################################
   
   teamStats <- transform(teamStats,
-                       FTtrips = ftaFactor*FTA,
-                       opp_FTtrips =  ftaFactor*opp_FTA)
+                         FTtrips = ftaFactor*FTA,
+                         opp_FTtrips =  ftaFactor*opp_FTA)
   
   teamStats <- transform(teamStats, 
-                       pts = FTM + 2*FGM + 3*FG3M,
-                       opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
-                       ps = TO + FTtrips + (FGA + FG3A) - secondChanceFactor * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
-                       opp_ps = opp_TO + ftaFactor*opp_FTA + (opp_FGA + opp_FG3A) - secondChanceFactor * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
-                       )
+                         pts = FTM + 2*FGM + 3*FG3M,
+                         opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
+                         ps = TO + FTtrips + (FGA + FG3A) - secondChanceFactor * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
+                         opp_ps = opp_TO + ftaFactor*opp_FTA + (opp_FGA + opp_FG3A) - secondChanceFactor * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
+  )
   
   teamStats <- transform(teamStats,
-                       avgps = round((ps + opp_ps) / 2),
-                       WARNING = abs(ps-opp_ps) > 4.0)
+                         avgps = round((ps + opp_ps) / 2),
+                         WARNING = abs(ps-opp_ps) > 4.0)
   
   teamStats <- transform(teamStats,
-                       Ortg = 100 * pts / avgps,
-                       Drtg = 100 * opp_pts / avgps,
-                       Home =  plg_ID == wed_ThuisPloeg)
+                         Ortg = 100 * pts / avgps,
+                         Drtg = 100 * opp_pts / avgps,
+                         Home =  plg_ID == wed_ThuisPloeg)
   
   teamStats <- transform(teamStats,
-                       Nrtg = Ortg - Drtg)
+                         Nrtg = Ortg - Drtg)
   
   teamStats <- transform(teamStats,
-                       EFGpct = (FGM+1.5*FG3M)/(FGA+FG3A),
-                       ORpct = OR / (OR + opp_DR),
-                       TOpct = TO / avgps
-                       )
+                         EFGpct = (FGM+1.5*FG3M)/(FGA+FG3A),
+                         ORpct = OR / (OR + opp_DR),
+                         TOpct = TO / avgps
+  )
   
   teamStats <- transform(teamStats,
-                       opp_EFGpct = (opp_FGM+1.5*opp_FG3M)/(opp_FGA+opp_FG3A),
-                       opp_ORpct = opp_OR / (opp_OR + DR),
-                       opp_TOpct = opp_TO / avgps,
-                       opp_FTTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
-                       )
+                         opp_EFGpct = (opp_FGM+1.5*opp_FG3M)/(opp_FGA+opp_FG3A),
+                         opp_ORpct = opp_OR / (opp_OR + DR),
+                         opp_TOpct = opp_TO / avgps,
+                         opp_FTTpct = opp_FTtrips / (opp_FGA+opp_FG3A)
+  )
   
   # shooting distribution
   teamStats <- transform(teamStats,
-                       FGApct = FGA / (FGA + FG3A + FTtrips),
-                       FGA3pct = FG3A / (FGA + FG3A + FTtrips),
-                       FTTpct = FTtrips / (FGA + FG3A + FTtrips)
-                       )
+                         FGApct = FGA / (FGA + FG3A + FTtrips),
+                         FGA3pct = FG3A / (FGA + FG3A + FTtrips),
+                         FTTpct = FTtrips / (FGA + FG3A + FTtrips)
+  )
   
   # shooting percentages
   teamStats <- transform(teamStats,
-                       FG2pct = FGM / FGA,
-                       FG3pct = FG3M/ FG3A,
-                       FTpct = FTM / FTA
-                       )
+                         FG2pct = FGM / FGA,
+                         FG3pct = FG3M/ FG3A,
+                         FTpct = FTM / FTA
+  )
   
   # # point by category
   # teamStats <- transform(teamStats,
@@ -204,6 +232,11 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   #                      ContrFTpts = FTpts/pts
   #                      )
   
+  return(teamStats)
+}
+  
+GetAdvancedPlayerStats <- function(sts, teamStats) {
+  
   #######################################################################
   #
   # Calculate player performanceindicators by game
@@ -211,11 +244,13 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   #
   #######################################################################
   
-  playerStats <- data.frame(sts$wed_ID, sts$plg_ID, sts$scu_Minuten,
-                           sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  
-                           sts$scu_3PA, 
-                           sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers,
-                           sts$spl_ID)
+  playerStats <- data.frame(sts$wed_ID
+                            , sts$plg_ID, sts$scu_Minuten
+                            , sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM  
+                            , sts$scu_3PA 
+                            , sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers
+                            , sts$spl_ID
+                            )
   
   # prettify
   names(playerStats) <- sub("^sts.", "", names(playerStats))        
@@ -234,33 +269,23 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   
   # shooting indicators:
   playerStats <- transform(playerStats,
-                          spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
-                          
+                           spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
+  
   
   playerStats <- transform(playerStats,
-                          spl_FTperFG = spl_FTA / (spl_FGA+spl_FG3A),
-                          spl_FG3AperFG =  spl_FG3A / (spl_FGA+spl_FG3A),
-                          spl_EFGpct = (1.5*spl_FG3M + spl_FGM) / (spl_FGA+spl_FG3A),
-                          spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
-                          )
+                           spl_FTperFG = spl_FTA / (spl_FGA+spl_FG3A),
+                           spl_FG3AperFG =  spl_FG3A / (spl_FGA+spl_FG3A),
+                           spl_EFGpct = (1.5*spl_FG3M + spl_FGM) / (spl_FGA+spl_FG3A),
+                           spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
+  )
   
   # usages:
   # ((FGA + 0.47 * FTA + TOV) * (Tm MP / 5)) 
   #  / (MP * (Tm FGA + 0.47 * Tm FTA + Tm TOV))
   playerStats <- transform(playerStats,
                            spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) * (Minuten / 5) 
-                                        / (spl_Minuten * (FGA + ftaFactor * FTA + TO))
-                           )
+                           / (spl_Minuten * (FGA + ftaFactor * FTA + TO))
+  )
   
-  #########
-  #
-  # output
-  #
-  #########
-  
-  write.csv2(teamStats, advancedTeamsStatsOutputFile)
-  write.csv2(playerStats, advancedPlayerStatsOutputFile)
+  return (playerStats)
 }
-
-
-CreateAdvancedStatsFiles("./sources/heren_2010_2011.csv")
