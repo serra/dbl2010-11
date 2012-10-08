@@ -28,15 +28,20 @@ substrRight <- function(x, n){
 }
 
 GetCompetitions <- function(allStats) {
-  comps <- sqldf( paste("select cmp_ID, min(wed_Datum) as StartDate,",
-                            " count(*) as NrGameLines",
-                          "from allStats group by cmp_ID",
-                        "order by min(wed_Datum)"))
+  sql <- paste("select cmp_ID, min(wed_Datum) as StartDate,",
+               " count(*) as NrGameLines",
+               "from allStats",
+               "where cmp_ID=421 or cmp_ID=627",
+               "group by cmp_ID",
+               "order by min(wed_Datum)"
+  )
+  print(sql)
+  comps <- sqldf(sql)
   
   
-  startYear <- as.numeric(substrRight(comps[1,"StartDate"],4))
+  startYear <- as.numeric(substr(comps[1,"StartDate"],1,4))
   comps <- transform(comps,
-                       Desc = paste("heren",startYear,startYear+1,sep="_"))
+                       Desc = paste("heren",paste(startYear,startYear+1,sep="-"),sep="_"))
   
   compDescriptions <- c("regseas","playoffs")
   
