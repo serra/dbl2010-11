@@ -29,7 +29,7 @@ Goals
 
 [ ] Offensive and defensive ratings for players for complete season.
 
-[ ] Offensive usage percentages for all players
+[x] Offensive usage percentages for all players
 
 [ ] Points produced for all players.
 
