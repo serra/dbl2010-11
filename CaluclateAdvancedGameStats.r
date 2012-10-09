@@ -270,6 +270,7 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
   
   
+  # advanced shooting indicators
   playerStats <- transform(playerStats,
                            spl_FTperFG = spl_FTA / (spl_FGA+spl_FG3A),
                            spl_FG3AperFG =  spl_FG3A / (spl_FGA+spl_FG3A),
@@ -277,13 +278,21 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
   )
   
-  # usages:
-  # ((FGA + 0.47 * FTA + TOV) * (Tm MP / 5)) 
-  #  / (MP * (Tm FGA + 0.47 * Tm FTA + Tm TOV))
+  
+  
   playerStats <- transform(playerStats,
-                           spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) * (Minuten / 5) 
-                           / (spl_Minuten * (FGA + ftaFactor * FTA + TO))
+                           spl_MinutesRatio = (spl_Minuten) / (Minuten / 5)
   )
+  
+  playerStats <- transform(playerStats,
+                           spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) 
+                                        / (spl_MinutesRatio * (FGA + ftaFactor * FTA + TO))
+  )
+  
+  playerStats <- transform(playerStats,
+                           spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
+  )
+  
   
   return (playerStats)
 }
