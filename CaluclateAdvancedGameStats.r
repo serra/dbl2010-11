@@ -328,7 +328,4 @@ CheckMinutesPlayed <- function(sts) {
   # and if we keep it unchanged, the accounted error will only be applied to 
   # the players involved in error - unlike the situation where we change 
   # everybody's minutes: then we can _be sure_ everybody will have an error!
-  
-  
-  
 }
