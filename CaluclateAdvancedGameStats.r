@@ -36,17 +36,17 @@ GetCompetitions <- function(allStats) {
                "group by cmp_ID",
                "order by min(wed_Datum)"
   )
-  print(sql)
+
   comps <- sqldf(sql)
-  
   
   startYear <- as.numeric(substr(comps[1,"StartDate"],1,4))
   comps <- transform(comps,
                        Desc = paste("heren",paste(startYear,startYear+1,sep="-"),sep="_"))
   
-  compDescriptions <- c("regseas","playoffs")
+  # should work too if there's only one competitions, hence the slicing
+  compDescriptions <- c("regseas","playoffs")[1:nrow(comps)] 
   
-  comps$Desc <- paste(comps$Desc,c("regseas","playoffs"),sep="_")
+  comps$Desc <- paste(comps$Desc,compDescriptions,sep="_")
   
   return(comps)
 }
@@ -58,11 +58,12 @@ CreateAdvancedStatsFiles <- function (fileName) {
                                        spl_tussen,
                                        spl_Achternaam))
   comps <- GetCompetitions(sts)
+  nrComps <- nrow(comps)
   
-  message(sprintf("Analyzing %i competitions:", nrow(comps)))
+  message(sprintf("Analyzing %i competitions:", nrComps))
   print(comps)
   
-  for(i in 1:2) {
+  for(i in 1:nrComps) {
     CreateAdvancedStatsFilesForCompetition(sts[which(sts$cmp_ID==comps[i,"cmp_ID"]),], 
                                            comps[i,"Desc"])
   }
@@ -75,7 +76,7 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   # Prepare teamStats data frame
   #
   ###############################
-    
+  
   advancedTeamsStatsOutputFile <- paste("./output/", compdesc, "_advanced_team_stats.csv", sep="")
   advancedPlayerStatsOutputFile <- paste("./output/", compdesc, "_advanced_player_stats.csv", sep="")
       
@@ -108,6 +109,12 @@ GetAdvancedTeamStats <- function(sts) {
                        "where plg_ID = wed_ThuisPloeg",
                        "group by plg_ID, thuis_club"))
   
+  message("Found ", nrow(teams), " teams:")
+  print(teams)
+  if(nrow(teams) < 8) {
+    stop("Only found ", nrow(teams), " teams - are you missing some teams?")
+  }
+   
   sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ", 
                     "max(wed_TeamOffRebThuis) as [OR], ",
                     "max(wed_TeamDefRebThuis) as DR, ", 
@@ -116,7 +123,6 @@ GetAdvancedTeamStats <- function(sts) {
                     "group by wed_Id, plg_ID, wed_UitPloeg, wed_ThuisPloeg")
   
   stsThuis <- sqldf(sqlThuis)
-  
   
   # add zeros for missing columns
   missingCols <- setdiff(names(psData), names(stsThuis))  # get missing cols
@@ -129,10 +135,10 @@ GetAdvancedTeamStats <- function(sts) {
   
   # merge the data frames to obtain a frame we can aggregate on by wed_ID and plg_ID
   psData <- rbind(psData, stsThuis, stsUit)
-  
+
   # aggregate by game and team
   agg <- aggregate(psData[5:14] , by=list(wed_ID=psData$wed_ID, plg_ID=psData$plg_ID, wed_UitPloeg=psData$wed_UitPloeg, wed_ThuisPloeg=psData$wed_ThuisPloeg), FUN=sum)
-  
+
   # add team name
   agg <- sqldf("select agg.*, teams.plg_Name from agg inner join teams on agg.plg_ID=teams.plg_ID")
   
@@ -159,7 +165,7 @@ GetAdvancedTeamStats <- function(sts) {
   
   # sanity checks ...
   CheckMinutesPlayed(teamStats)
-  
+
   #######################################################################
   #
   # Calculate performance indicators and add them to the teamStats frame
@@ -289,9 +295,9 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                                         / (spl_MinutesRatio * (FGA + ftaFactor * FTA + TO))
   )
   
-  playerStats <- transform(playerStats,
-                           spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
-  )
+  #playerStats <- transform(playerStats,
+  #                         spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
+  #)
   
   
   return (playerStats)

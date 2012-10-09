@@ -7,7 +7,6 @@ source("CaluclateAdvancedGameStats.r")
 source("ReportTeamRatings.r")
 source("download.r")
 
-
 season <- "2012-2013"
 
 message("downloading ", season, " ...")
