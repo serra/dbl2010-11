@@ -7,7 +7,7 @@ downloadseason <- function(seasonId) {
   return(dest)
 }
 
-DownLoadAll <- funtion() {
+DownLoadAll <- function() {
   seasonStarts <- 2000:2012
   allSeasons <- paste(seasonStarts, seasonStarts+1, sep="-")
   
