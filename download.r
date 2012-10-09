@@ -4,6 +4,7 @@ downloadseason <- function(seasonId) {
   url <- paste(baseUrl, seasonId, sep="")
   dest <- paste("./sources/raw/heren_", seasonId, ".csv", sep ="")
   download.file(url, dest, "auto")
+  return(dest)
 }
 
 DownLoadAll <- funtion() {
