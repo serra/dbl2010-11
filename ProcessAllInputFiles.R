@@ -1,3 +1,11 @@
+# Processes all files in ./input/ and outputs csv files with advanced stats
+#
+# Optionally print additional team ratings report, buth this is commented out,
+# because it take too much time.
+
+source("CaluclateAdvancedGameStats.r")
+source("ReportTeamRatings.r")
+
 inputFiles <- list.files("./input/", full.names="true")
 
 for(fileName in inputFiles) {
