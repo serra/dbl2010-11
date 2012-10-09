@@ -28,6 +28,7 @@ substrRight <- function(x, n){
 }
 
 GetCompetitions <- function(allStats) {
+  # 421: regular season, 627: playoffs
   sql <- paste("select cmp_ID, min(wed_Datum) as StartDate,",
                " count(*) as NrGameLines",
                "from allStats",
@@ -157,16 +158,8 @@ GetAdvancedTeamStats <- function(sts) {
   names(teamStats)[nrCols+1:nrCols] <- oppCols
   
   # sanity checks ...
+  CheckMinutesPlayed(teamStats)
   
-  minutesNotEqual <- sqldf(paste("select wed_ID, plg_name, wed_ThuisPloeg, wed_UitPloeg, Minuten, opp_minuten",
-                                 "from teamStats ",
-                                 "where Minuten <> opp_minuten"))
-  
-  nrGamesWithUnEqualMinutes <- (nrow(minutesNotEqual) / 2)
-  if(nrGamesWithUnEqualMinutes > 0) {
-    warning(sprintf("%i game(s) with unequal minutes per team:", nrGamesWithUnEqualMinutes))
-    print(minutesNotEqual)
-  }
   #######################################################################
   #
   # Calculate performance indicators and add them to the teamStats frame
@@ -293,4 +286,49 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
   )
   
   return (playerStats)
+}
+
+CheckMinutesPlayed <- function(sts) {
+  
+  minutesNotEqual <- sqldf(paste("select wed_ID, plg_name, wed_ThuisPloeg, wed_UitPloeg, Minuten, opp_minuten",
+                                 "from sts ",
+                                 "where Minuten <> opp_minuten"))
+  
+  nrGamesWithUnEqualMinutes <- (nrow(minutesNotEqual) / 2)
+  if(nrGamesWithUnEqualMinutes > 0) {
+    warning(sprintf("%i game(s) with unequal minutes per team:", nrGamesWithUnEqualMinutes))
+    print(minutesNotEqual)
+  }
+  
+  # Although in every competition there is a certain number of games
+  # where there clearly is an administrative error in the minutes played,
+  # I choose not to correct for this at the moment.
+  # I found two type of minutes played errors; I'll describe both:
+  #
+  # Ad.1 - 2011-12, Aris-Weert:
+  # wed_ID               plg_Name  Minuten opp_Minuten
+  # 557264 Basketball Stars Weert      197         200
+  # 
+  # Here, Weet plays a total of 197 minutes against 200 opp minutes;
+  # I assume, because Weert finished the game with 4 or even fewer players.
+  # No correction required
+  #
+  # Ad.2 - 2011-12, Aris-GasTerra
+  # wed_ID               plg_Name  Minuten opp_Minuten
+  # 557288                BV Aris     173         227
+  # 
+  # Here it appears as if 27 minutes of Aris were accidentally accounted to Aris.
+  # However unless we investigate this further, we can't really reconstruct what
+  # happened, or how we should fix this.
+  # Maybe GT number 9 player was mixed up with Aris #9? How should we fix this?
+  # We can not _systematically_ find the error by simply looking at the data,
+  # so fairest seems to be to reditribute the minutes among all player according
+  # to the current minutes played ratio. But if we do this, the estimation 
+  # parameter (player minutes / team minutes) will not change.
+  # and if we keep it unchanged, the accounted error will only be applied to 
+  # the players involved in error - unlike the situation where we change 
+  # everybody's minutes: then we can _be sure_ everybody will have an error!
+  
+  
+  
 }
