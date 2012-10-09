@@ -6,9 +6,11 @@ downloadseason <- function(seasonId) {
   download.file(url, dest, "auto")
 }
 
-seasonStarts <- 2000:2012
-allSeasons <- paste(seasonStarts, seasonStarts+1, sep="-")
-
-for(s in allSeasons) {
-  downloadseason(s)
+DownLoadAll <- funtion() {
+  seasonStarts <- 2000:2012
+  allSeasons <- paste(seasonStarts, seasonStarts+1, sep="-")
+  
+  for(s in allSeasons) {
+    downloadseason(s)
+  }
 }
