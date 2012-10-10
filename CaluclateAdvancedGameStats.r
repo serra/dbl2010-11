@@ -112,7 +112,7 @@ GetAdvancedTeamStats <- function(sts) {
   message("Found ", nrow(teams), " teams:")
   print(teams)
   if(nrow(teams) < 8) {
-    stop("Only found ", nrow(teams), " teams - are you missing some teams?")
+    warning("Only found ", nrow(teams), " teams - are you missing some teams?")
   }
    
   sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ", 
