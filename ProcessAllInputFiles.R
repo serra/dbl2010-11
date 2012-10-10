@@ -3,7 +3,7 @@
 # Optionally print additional team ratings report, buth this is commented out,
 # because it take too much time.
 
-source("CaluclateAdvancedGameStats.r")
+source("CalculateAdvancedGameStats.r")
 source("ReportTeamRatings.r")
 
 inputFiles <- list.files("./input/", full.names="true")
