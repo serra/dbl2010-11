@@ -7,7 +7,7 @@ source("CalculateAdvancedGameStats.r")
 source("ReportTeamRatings.r")
 source("download.r")
 
-season <- "2012-2013"
+season <- "2012-2013" # testing - there is an err when we can't load all the teams
 
 message("downloading ", season, " ...")
 fileName <- downloadseason(season)

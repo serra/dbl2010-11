@@ -1,7 +1,7 @@
 # Processes all files in ./input/ and outputs csv files with advanced stats
 #
 # Optionally print additional team ratings report, buth this is commented out,
-# because it take too much time.
+# because it takes too much time.
 
 source("CalculateAdvancedGameStats.r")
 source("ReportTeamRatings.r")
