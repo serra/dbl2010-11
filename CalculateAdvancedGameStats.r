@@ -64,9 +64,31 @@ CreateAdvancedStatsFiles <- function (fileName) {
   print(comps)
   
   for(i in 1:nrComps) {
-    CreateAdvancedStatsFilesForCompetition(sts[which(sts$cmp_ID==comps[i,"cmp_ID"]),], 
+    message(sprintf("Processing %s ... ", comps[i,"Desc"]))
+    compStats <- sts[which(sts$cmp_ID==comps[i,"cmp_ID"]),]
+    PrintCompetitionStatistics(compStats)
+    CreateAdvancedStatsFilesForCompetition(compStats, 
                                            comps[i,"Desc"])
   }
+}
+
+PrintCompetitionStatistics <- function(sts) {
+  games <- sqldf("select wed_ID from sts group by wed_ID")
+  teams <- GetTeams(sts)
+  message(sprintf("Processing %i games by %i teams, with %i player stat lines",
+                  nrow(games),nrow(teams),nrow(sts)))
+  message("Found ", nrow(teams), " teams:")
+  print(teams)
+  if(nrow(teams) < 8) {
+    warning("Only found ", nrow(teams), " teams - are you missing some teams?")
+  }
+}
+
+GetTeams <- function(sts) {
+  teams <- sqldf(paste("select plg_ID, thuis_club as plg_Name from sts",
+                       "where plg_ID = wed_ThuisPloeg",
+                       "group by plg_ID, thuis_club"))
+  return(teams)
 }
 
 CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
@@ -104,16 +126,7 @@ GetAdvancedTeamStats <- function(sts) {
   names(psData) <- sub("TurnOvers", "TO", names(psData))
   names(psData) <- sub("3P", "FG3", names(psData))
   
-  games <- sqldf("select wed_ID from sts group by wed_ID")
-  teams <- sqldf(paste("select plg_ID, thuis_club as plg_Name from sts",
-                       "where plg_ID = wed_ThuisPloeg",
-                       "group by plg_ID, thuis_club"))
-  
-  message("Found ", nrow(teams), " teams:")
-  print(teams)
-  if(nrow(teams) < 8) {
-    warning("Only found ", nrow(teams), " teams - are you missing some teams?")
-  }
+  teams <- GetTeams(sts)
    
   sqlThuis <- paste("select wed_ID, plg_ID, wed_UitPloeg, wed_ThuisPloeg, ", 
                     "max(wed_TeamOffRebThuis) as [OR], ",
@@ -311,8 +324,10 @@ CheckMinutesPlayed <- function(sts) {
   
   nrGamesWithUnEqualMinutes <- (nrow(minutesNotEqual) / 2)
   if(nrGamesWithUnEqualMinutes > 0) {
-    warning(sprintf("%i game(s) with unequal minutes per team:", nrGamesWithUnEqualMinutes))
-    print(minutesNotEqual)
+    wrn <- sprintf("%i game(s) with unequal minutes per team:", nrGamesWithUnEqualMinutes)
+    warning(wrn)
+    #uncomment next line for inspection:
+    #print(minutesNotEqual)
   }
   
   # Although in every competition there is a certain number of games
