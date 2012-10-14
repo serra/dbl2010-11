@@ -338,6 +338,13 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            / (spl_MinutesRatio * (FGM + FG3M) - spl_FGM - spl_FG3M)
   )
   
+  playerStats <- transform(playerStats,
+                           spl_TRpct = (spl_DR+spl_OR) / (spl_MinutesRatio * (DR + OR + opp_DR + opp_OR)),
+                           spl_DRpct = (spl_DR) / (spl_MinutesRatio * (DR + opp_OR)),
+                           spl_ORpct = (spl_OR) / (spl_MinutesRatio * (OR + opp_DR))
+  )
+  
+  
   return (playerStats)
 }
 
