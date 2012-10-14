@@ -77,7 +77,6 @@ PrintCompetitionStatistics <- function(sts) {
   teams <- GetTeams(sts)
   message(sprintf("Processing %i games by %i teams, with %i player stat lines",
                   nrow(games),nrow(teams),nrow(sts)))
-  message("Found ", nrow(teams), " teams:")
   print(teams)
   if(nrow(teams) < 8) {
     warning("Only found ", nrow(teams), " teams - are you missing some teams?")
@@ -85,9 +84,18 @@ PrintCompetitionStatistics <- function(sts) {
 }
 
 GetTeams <- function(sts) {
-  teams <- sqldf(paste("select plg_ID, thuis_club as plg_Name from sts",
-                       "where plg_ID = wed_ThuisPloeg",
-                       "group by plg_ID, thuis_club"))
+  teamsThuis <- sqldf(paste("select plg_ID, thuis_club as plg_Name from sts",
+                            "where plg_ID = wed_ThuisPloeg",
+                            "group by plg_ID, thuis_club"))
+  
+  teamsUit <- sqldf(paste("select plg_ID, uit_club as plg_Name from sts",
+                            "where plg_ID = wed_UitPloeg",
+                            "group by plg_ID, uit_club"))
+  
+  teams <- rbind(teamsThuis,teamsUit)
+  teams <- sqldf(paste("select plg_ID, plg_Name from teams",
+                                       "group by plg_ID, plg_Name"))
+    
   return(teams)
 }
 
