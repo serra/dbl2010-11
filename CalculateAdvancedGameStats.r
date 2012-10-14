@@ -128,7 +128,8 @@ GetAdvancedTeamStats <- function(sts) {
                        sts$scu_FTA, sts$scu_FTM, sts$scu_FGA, sts$scu_FGM, sts$scu_3PM,  
                        sts$scu_3PA, 
                        sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers,
-                       sts$scu_Minuten)
+                       sts$scu_Minuten,
+                       sts$scu_Fouten, sts$scu_Assists, sts$scu_Steals, sts$scu_Blocks)
   
   # prettify
   names(psData) <- sub("^sts.", "", names(psData))        
@@ -136,6 +137,10 @@ GetAdvancedTeamStats <- function(sts) {
   names(psData) <- sub("OffRebounds", "OR", names(psData))
   names(psData) <- sub("DefRebounds", "DR", names(psData))
   names(psData) <- sub("TurnOvers", "TO", names(psData))
+  names(psData) <- sub("Fouten", "PF", names(psData))
+  names(psData) <- sub("Assists", "Ast", names(psData))
+  names(psData) <- sub("Steals", "Stl", names(psData))
+  names(psData) <- sub("Blocks", "Blk", names(psData))
   names(psData) <- sub("3P", "FG3", names(psData))
   
   teams <- GetTeams(sts)
@@ -279,6 +284,7 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                             , sts$scu_3PA 
                             , sts$scu_OffRebounds, sts$scu_DefRebounds, sts$scu_TurnOvers
                             , sts$spl_ID
+                            , sts$scu_Fouten, sts$scu_Assists, sts$scu_Steals, sts$scu_Blocks
                             )
   
   # prettify
@@ -288,7 +294,11 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
   names(playerStats) <- sub("DefRebounds", "DR", names(playerStats))
   names(playerStats) <- sub("TurnOvers", "TO", names(playerStats))
   names(playerStats) <- sub("3P", "FG3", names(playerStats))
-  
+  names(playerStats) <- sub("Fouten", "PF", names(playerStats))
+  names(playerStats) <- sub("Assists", "Ast", names(playerStats))
+  names(playerStats) <- sub("Steals", "Stl", names(playerStats))
+  names(playerStats) <- sub("Blocks", "Blk", names(playerStats))
+
   sqlPlayersJoinTeam <- paste("select * from teamStats tm ",
                               "inner join playerStats ply on ",
                               "tm.wed_ID = ply.wed_ID and tm.plg_ID = ply.plg_ID ", 
@@ -299,7 +309,6 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
   # shooting indicators:
   playerStats <- transform(playerStats,
                            spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
-  
   
   # advanced shooting indicators
   playerStats <- transform(playerStats,
@@ -320,10 +329,14 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                                         / (spl_MinutesRatio * (FGA + ftaFactor * FTA + TO))
   )
   
-  #playerStats <- transform(playerStats,
-  #                         spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
-  #)
+  playerStats <- transform(playerStats,
+                           spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
+  )
   
+  playerStats <- transform(playerStats,
+                           spl_Astpct = (spl_Ast) 
+                           / (spl_MinutesRatio * (FGM + FG3M) - spl_FGM - spl_FG3M)
+  )
   
   return (playerStats)
 }
