@@ -60,7 +60,7 @@ CreateAdvancedStatsFiles <- function (fileName) {
   comps <- GetCompetitions(sts)
   nrComps <- nrow(comps)
   
-  message(sprintf("Analyzing %i competitions:", nrComps))
+  message(sprintf("Analyzing %i competition(s):", nrComps))
   print(comps)
   
   for(i in 1:nrComps) {
@@ -113,7 +113,11 @@ CreateAdvancedStatsFilesForCompetition <- function (sts, compdesc) {
   teamStats <- GetAdvancedTeamStats(sts) 
   playerStats <- GetAdvancedPlayerStats(sts, teamStats)
   
+  
+  message("Writing result file ", advancedTeamsStatsOutputFile)
   write.csv2(teamStats, advancedTeamsStatsOutputFile)
+  
+  message("Writing result file ", advancedPlayerStatsOutputFile)
   write.csv2(playerStats, advancedPlayerStatsOutputFile)
   
   return(c(advancedTeamsStatsOutputFile,advancedPlayerStatsOutputFile))
