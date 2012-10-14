@@ -349,6 +349,12 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            / (spl_MinutesRatio * (opp_ps))
   )
   
+  # note that block percentage is estimated using 2pt field goal attempts
+  playerStats <- transform(playerStats,
+                           spl_Blkpct = (spl_Blk) 
+                           / (spl_MinutesRatio * (opp_FGA))
+  )
+  
   
   return (playerStats)
 }
