@@ -344,6 +344,11 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            spl_ORpct = (spl_OR) / (spl_MinutesRatio * (OR + opp_DR))
   )
   
+  playerStats <- transform(playerStats,
+                           spl_Stlpct = (spl_Stl) 
+                           / (spl_MinutesRatio * (opp_ps))
+  )
+  
   
   return (playerStats)
 }
