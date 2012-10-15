@@ -205,27 +205,27 @@ PrintTeamRatings <- function(teamStats, outputFile) {
   
   message("battle of ratio's per team ...")
   
-  for(i in 1:nrTeams){
-    plgID <- teams[i,1]
-    plgName <- teams[i,2]
-    forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
-    d = data.frame(forPlot$Nrtg, forPlot$Ortg, forPlot$Drtg,
-                   forPlot$EFGpct, forPlot$ORpct, 
-                   forPlot$TOpct, forPlot$FTTpct,
-                   forPlot$opp_EFGpct, forPlot$opp_ORpct, 
-                   forPlot$opp_TOpct, forPlot$opp_FTTpct
-                   )
-    names(d) <- sub("^forPlot.", "", names(d))
-    corTeam = cor(d)
-    
-    p <- levelplot(corTeam, main=paste("Performance correlation matrix for ",plgName), 
-                   panel=function(...) {
-                    arg <- list(...)
-                    panel.levelplot(...)
-                    panel.text(arg$x, arg$y, round(arg$z,2))})
-    
-    print(p)
-  }
+#   for(i in 1:nrTeams){
+#     plgID <- teams[i,1]
+#     plgName <- teams[i,2]
+#     forPlot <- teamStats[which(teamStats$plg_ID==plgID),]
+#     d = data.frame(forPlot$Nrtg, forPlot$Ortg, forPlot$Drtg,
+#                    forPlot$EFGpct, forPlot$ORpct, 
+#                    forPlot$TOpct, forPlot$FTTpct,
+#                    forPlot$opp_EFGpct, forPlot$opp_ORpct, 
+#                    forPlot$opp_TOpct, forPlot$opp_FTTpct
+#                    )
+#     names(d) <- sub("^forPlot.", "", names(d))
+#     corTeam = cor(d)
+#     
+#     p <- levelplot(corTeam, main=paste("Performance correlation matrix for ",plgName), 
+#                    panel=function(...) {
+#                     arg <- list(...)
+#                     panel.levelplot(...)
+#                     panel.text(arg$x, arg$y, round(arg$z,2))})
+#     
+#     print(p)
+#   }
   
   message("Ratio Details by team ...")
   

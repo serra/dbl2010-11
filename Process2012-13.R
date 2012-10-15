@@ -19,5 +19,5 @@ CreateAdvancedStatsFiles(fileName)
 regseasTeam <- read.csv2(sprintf("./output/heren_%s_regseas_advanced_team_stats.csv", season))
 regseasPlyr <- read.csv2(sprintf("./output/heren_%s_regseas_advanced_player_stats.csv", season))
 
-#PrintTeamRatings(regseas, sprintf("./output/%s_regseas_advanced_teamRatings.pdf", season))
+PrintTeamRatings(regseasTeam, sprintf("./output/%s_regseas_advanced_teamRatings.pdf", season))
 #PrintTeamRatings(playoffs, sprintf("./output/%s_playoffs_advanced_teamRatings.pdf", season))
