@@ -326,7 +326,7 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
   
   playerStats <- transform(playerStats,
                            spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) 
-                                        / (spl_MinutesRatio * (FGA + ftaFactor * FTA + TO))
+                                        / (spl_MinutesRatio * (FGA + FG3A + ftaFactor * FTA + TO))
   )
   
   playerStats <- transform(playerStats,
