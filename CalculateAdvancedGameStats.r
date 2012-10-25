@@ -317,18 +317,7 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
   
   playerStats <- sqldf(sqlPlayersJoinTeam)
   
-  # shooting indicators:
-  playerStats <- transform(playerStats,
-                           spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
   
-  # advanced shooting indicators
-  playerStats <- transform(playerStats,
-                           spl_FTperFG = spl_FTA / (spl_FGA+spl_FG3A),
-                           spl_FG3AperFG =  spl_FG3A / (spl_FGA+spl_FG3A),
-                           spl_EFGpct = (1.5*spl_FG3M + spl_FGM) / (spl_FGA+spl_FG3A),
-                           spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
-  )
-    
   # minute ratio - what percentage of the game was the player on the floor?
   playerStats <- transform(playerStats,
                            spl_MinutesRatio = (spl_Minuten) / (Minuten / 5)
@@ -339,9 +328,25 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            spl_Plays = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO)
   )
   
+  # usage percentage is the number of plays deployed by this player,
+  # divided by the estimated number of plays that occured while the player was 
+  # on the floor
   playerStats <- transform(playerStats,
                            spl_USGpct = (spl_Plays) 
                            / (spl_MinutesRatio * plays)
+  )
+  
+  # scoring
+  playerStats <- transform(playerStats,
+                           spl_PTS = spl_FTM + 2*spl_FGM + 3*spl_FG3M)
+  
+  # advanced shooting indicators
+  playerStats <- transform(playerStats,
+                           spl_PPP = spl_PTS / spl_Plays,
+                           spl_FTperFG = spl_FTA / (spl_FGA+spl_FG3A),
+                           spl_FG3AperFG =  spl_FG3A / (spl_FGA+spl_FG3A),
+                           spl_EFGpct = (1.5*spl_FG3M + spl_FGM) / (spl_FGA+spl_FG3A),
+                           spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
   )
     
   playerStats <- transform(playerStats,
