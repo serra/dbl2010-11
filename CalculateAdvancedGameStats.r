@@ -10,7 +10,7 @@ library(sqldf)
 # 
 ############
 
-ftaFactor <- 0.4     # Estimate percentage of free throws that end a possession.
+ftaFactor <- 0.4     # Estimated percentage of free throws that end a possession.
                      # Originally estimated by Oliver at 0.4,
                      # but nowadays values of 0.44 (NBA) and 0.47 (EuroLeague)
                      # are used. To be investigated.
@@ -204,13 +204,24 @@ GetAdvancedTeamStats <- function(sts) {
   
   teamStats <- transform(teamStats,
                          FTtrips = ftaFactor*FTA,
-                         opp_FTtrips =  ftaFactor*opp_FTA)
+                         opp_FTtrips =  ftaFactor*opp_FTA
+  )
   
   teamStats <- transform(teamStats, 
                          pts = FTM + 2*FGM + 3*FG3M,
-                         opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M,
-                         ps = TO + FTtrips + (FGA + FG3A) - secondChanceFactor * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
-                         opp_ps = opp_TO + ftaFactor*opp_FTA + (opp_FGA + opp_FG3A) - secondChanceFactor * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
+                         opp_pts =  opp_FTM + 2*opp_FGM + 3*opp_FG3M
+  )
+  
+  # a play is a turnover, a ft trip or field goal attempt 
+  teamStats <- transform(teamStats, 
+                         plays = TO + FTtrips + (FGA + FG3A),
+                         opp_plays = opp_TO + ftaFactor*opp_FTA
+  )
+  
+  # to calculate possessions, we have to take offensive rebounds into account
+  teamStats <- transform(teamStats, 
+                         ps = plays - secondChanceFactor * (FGA + FG3A - FGM - FG3M) * OR / (OR + opp_DR),
+                         opp_ps = opp_plays - secondChanceFactor * (opp_FGA + opp_FG3A - opp_FGM - opp_FG3M) * opp_OR / (opp_OR + DR)
   )
   
   teamStats <- transform(teamStats,
@@ -317,20 +328,24 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            spl_EFGpct = (1.5*spl_FG3M + spl_FGM) / (spl_FGA+spl_FG3A),
                            spl_TSpct = (spl_PTS / (2 * (spl_FGA + spl_FG3A + ftaFactor * spl_FTA)))
   )
-  
-  
-  
+    
+  # minute ratio - what percentage of the game was the player on the floor?
   playerStats <- transform(playerStats,
                            spl_MinutesRatio = (spl_Minuten) / (Minuten / 5)
   )
   
+  # how many plays did the player use?
   playerStats <- transform(playerStats,
-                           spl_USGpct = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO) 
-                                        / (spl_MinutesRatio * (FGA + FG3A + ftaFactor * FTA + TO))
+                           spl_Plays = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO)
   )
   
   playerStats <- transform(playerStats,
-                           spl_Finishes = (spl_FGA + spl_FG3A + ftaFactor * spl_FTA + spl_TO + spl_Ast)
+                           spl_USGpct = (spl_Plays) 
+                           / (spl_MinutesRatio * plays)
+  )
+    
+  playerStats <- transform(playerStats,
+                           spl_Finishes = (spl_Plays + spl_Ast)
   )
   
   playerStats <- transform(playerStats,
@@ -349,13 +364,12 @@ GetAdvancedPlayerStats <- function(sts, teamStats) {
                            / (spl_MinutesRatio * (opp_ps))
   )
   
-  # note that block percentage is estimated using 2pt field goal attempts
+  # note that block percentage is estimated using 2pt field goal attempts only
   playerStats <- transform(playerStats,
                            spl_Blkpct = (spl_Blk) 
                            / (spl_MinutesRatio * (opp_FGA))
   )
-  
-  
+    
   return (playerStats)
 }
 
