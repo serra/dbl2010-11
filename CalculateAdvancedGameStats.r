@@ -215,7 +215,7 @@ GetAdvancedTeamStats <- function(sts) {
   # a play is a turnover, a ft trip or field goal attempt 
   teamStats <- transform(teamStats, 
                          plays = TO + FTtrips + (FGA + FG3A),
-                         opp_plays = opp_TO + ftaFactor*opp_FTA
+                         opp_plays = opp_TO + opp_FTtrips + (opp_FGA + opp_FG3A)
   )
   
   # to calculate possessions, we have to take offensive rebounds into account
